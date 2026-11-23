@@ -8,6 +8,9 @@ import { Check } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ModuleIcon } from "@varzino/shared/module-icon";
+import { workspaces } from "@varzino/demo-data";
+import { Messenger, RoleMatrix } from "@/components/module-extras";
+import { ModuleWorkspace } from "@/components/workspace";
 
 export const dynamicParams = false;
 
@@ -55,6 +58,10 @@ export default async function ModuleOverviewPage({ params }: { params: Promise<{
         ))}
       </div>
 
+      {workspaces[module] ? <ModuleWorkspace id={module} /> : null}
+      {module === "users" ? <RoleMatrix /> : null}
+      {module === "messaging" ? <Messenger /> : null}
+
       <div className="grid gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
         <Card>
           <CardHeader title={chart.title} description={chart.caption} />
@@ -100,7 +107,7 @@ export default async function ModuleOverviewPage({ params }: { params: Promise<{
             </ul>
           </Card>
           <Card>
-            <CardHeader title="در نسخه کامل" description="امکانات این زیرسامانه طبق سند نیازمندی‌ها" />
+            <CardHeader title="امکانات این زیرسامانه" description="طبق سند نیازمندی‌ها" />
             <ul className="flex flex-col gap-2.5 px-5 pb-5 pt-4">
               {mod.capabilities.map((c) => (
                 <li key={c} className="flex items-start gap-2.5 text-sm text-fg-secondary">
@@ -113,6 +120,7 @@ export default async function ModuleOverviewPage({ params }: { params: Promise<{
         </div>
       </div>
 
+      {module === "leagues" || !workspaces[module] ? (
       <Card>
         <CardHeader title={data.table.title} description={`${formatNumber(data.table.rows.length)} مورد اخیر`} />
         <Table className="mt-4">
@@ -134,6 +142,7 @@ export default async function ModuleOverviewPage({ params }: { params: Promise<{
           </tbody>
         </Table>
       </Card>
+      ) : null}
     </div>
   );
 }

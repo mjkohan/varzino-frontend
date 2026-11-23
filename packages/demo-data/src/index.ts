@@ -10,3 +10,4 @@ export * from "./organizations";
 export * from "./modules";
 export * from "./overviews";
 export * from "./dashboard";
+export * from "./workspaces";

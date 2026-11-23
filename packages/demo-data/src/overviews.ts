@@ -3,7 +3,7 @@
  * a few stats, one main chart, one table.
  */
 
-export type Tone = "neutral" | "positive" | "warning" | "negative" | "info";
+export type Tone = "neutral" | "positive" | "warning" | "negative" | "info" | "accent";
 export type Cell = string | { text: string; tone: Tone };
 
 export type OverviewStat = { label: string; value: string; change?: { value: number; against: string } };
