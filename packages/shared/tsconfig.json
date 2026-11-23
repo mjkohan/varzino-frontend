@@ -1,0 +1,4 @@
+{
+  "extends": "@varzino/config-typescript/library.json",
+  "include": ["src"]
+}

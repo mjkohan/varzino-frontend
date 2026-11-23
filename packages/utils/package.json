@@ -1,0 +1,16 @@
+{
+  "name": "@varzino/utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@varzino/config-typescript": "workspace:*",
+    "typescript": "5.9.3"
+  }
+}

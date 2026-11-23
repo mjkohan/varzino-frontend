@@ -1,0 +1,29 @@
+# Landing and panel as two containers.
+# NEXT_PUBLIC_* URLs are baked in at build time, so rebuild after changing .env:
+#   docker compose up -d --build
+services:
+  landing:
+    build:
+      context: .
+      args:
+        APP: landing
+        NEXT_PUBLIC_LANDING_URL: ${LANDING_URL:-http://localhost:3000}
+        NEXT_PUBLIC_PANEL_URL: ${PANEL_URL:-http://localhost:3001}
+    image: varzino-landing
+    container_name: varzino-landing
+    ports:
+      - "${LANDING_PORT:-3000}:3000"
+    restart: unless-stopped
+
+  panel:
+    build:
+      context: .
+      args:
+        APP: panel
+        NEXT_PUBLIC_LANDING_URL: ${LANDING_URL:-http://localhost:3000}
+        NEXT_PUBLIC_PANEL_URL: ${PANEL_URL:-http://localhost:3001}
+    image: varzino-panel
+    container_name: varzino-panel
+    ports:
+      - "${PANEL_PORT:-3001}:3000"
+    restart: unless-stopped
