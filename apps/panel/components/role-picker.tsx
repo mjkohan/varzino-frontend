@@ -3,11 +3,11 @@
 import { demoRoles } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { cn } from "@varzino/ui/lib/cn";
-import { Building, Building2, Landmark } from "lucide-react";
+import { Building, Building2, Landmark, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const icons = { federation: Landmark, board: Building2, club: Building } as const;
+const icons = { federation: Landmark, board: Building2, club: Building, participant: UserRound } as const;
 
 export function RolePicker() {
   const [selected, setSelected] = useState(demoRoles[0]!.id);
@@ -17,7 +17,7 @@ export function RolePicker() {
   function enter() {
     setPending(true);
     document.cookie = `varzino-role=${selected}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
-    router.push("/");
+    router.push(demoRoles.find((r) => r.id === selected)?.home ?? "/");
   }
 
   return (

@@ -11,3 +11,4 @@ export * from "./modules";
 export * from "./overviews";
 export * from "./dashboard";
 export * from "./workspaces";
+export * from "./participant";

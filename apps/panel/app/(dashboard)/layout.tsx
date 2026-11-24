@@ -1,9 +1,12 @@
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
+import { redirect } from "next/navigation";
 import { getDemoRole } from "@/lib/role";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const role = await getDemoRole();
+  // The participant role has its own portal.
+  if (role.home !== "/") redirect(role.home);
   return (
     <div className="flex min-h-dvh">
       <Sidebar />

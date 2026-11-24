@@ -92,7 +92,8 @@ export function Topbar({ role }: { role: DemoRole }) {
               key={r.id}
               onSelect={() => {
                 setRole(r.id);
-                router.refresh();
+                if (r.home !== "/") router.push(r.home);
+                else router.refresh();
               }}
               className="h-auto items-start py-2"
             >

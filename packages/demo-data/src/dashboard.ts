@@ -34,10 +34,11 @@ export const DEMO_USER = {
   initials: "م‌ک",
 };
 
-export type DemoRole = { id: string; title: string; scope: string; description: string };
+export type DemoRole = { id: string; title: string; scope: string; description: string; /** where this role lands after login */ home: string };
 
 export const demoRoles: DemoRole[] = [
-  { id: "federation", title: "دبیر کل فدراسیون", scope: "فدراسیون تکواندو، سراسر کشور", description: "همه هیئت‌ها، مسابقات کشوری، مالی و گزارش‌های مدیریتی" },
-  { id: "board", title: "رئیس هیئت استان", scope: "هیئت تکواندو اصفهان", description: "باشگاه‌ها، ورزشکاران و مسابقات استان، سهم مالی هیئت" },
-  { id: "club", title: "مدیر باشگاه", scope: "باشگاه پیشگامان، تهران", description: "ورزشکاران باشگاه، ثبت‌نام در مسابقات، پروانه و پرداخت‌ها" },
+  { id: "federation", title: "دبیر کل فدراسیون", scope: "فدراسیون تکواندو، سراسر کشور", description: "همه هیئت‌ها، مسابقات کشوری، مالی و گزارش‌های مدیریتی", home: "/" },
+  { id: "board", title: "رئیس هیئت استان", scope: "هیئت تکواندو اصفهان", description: "باشگاه‌ها، ورزشکاران و مسابقات استان، سهم مالی هیئت", home: "/" },
+  { id: "club", title: "مدیر باشگاه", scope: "باشگاه پیشگامان، تهران", description: "ورزشکاران باشگاه، ثبت‌نام در مسابقات، پروانه و پرداخت‌ها", home: "/" },
+  { id: "participant", title: "ورزشکار", scope: "پرتال شرکت‌کنندگان", description: "پرونده و کارت عضویت خودم، ثبت‌نام در مسابقات و دوره‌ها، پرداخت‌ها", home: "/me" },
 ];
