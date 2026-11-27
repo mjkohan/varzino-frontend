@@ -1,6 +1,6 @@
 "use client";
 
-import { certificates, courses, courseStatusLabel, trackLabel, type Course, type CourseStatus } from "@varzino/demo-data";
+import { courseStatusLabel, trackLabel, type Course, type CourseStatus } from "@varzino/demo-data";
 import { StatusBadge, type Tone } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardHeader } from "@varzino/ui/components/card";
@@ -12,13 +12,15 @@ import { formatDate, formatNumber, formatToman } from "@varzino/utils";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { FilterTabs } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 const tone: Record<CourseStatus, Tone> = { enrolling: "info", running: "accent", finished: "neutral", planned: "neutral" };
 
 export function EducationView() {
+  const { certificates, courses } = useData();
   const [status, setStatus] = useState("all");
   const [open, setOpen] = useState<Course | null>(null);
-  const rows = useMemo(() => courses.filter((c) => status === "all" || c.status === status), [status]);
+  const rows = useMemo(() => courses.filter((c) => status === "all" || c.status === status), [courses, status]);
 
   return (
     <div className="flex flex-col gap-4">

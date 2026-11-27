@@ -1,7 +1,8 @@
 import { daysFromNow } from "@varzino/utils";
+import type { FederationProfile } from "./federations";
 import { FEMALE_FIRST, LAST, MALE_FIRST } from "./names";
 import { createRandom } from "./random";
-import { provinces } from "./provinces";
+import type { Province } from "./provinces";
 
 export type Gender = "male" | "female";
 export type PersonRole = "athlete" | "coach" | "referee";
@@ -44,9 +45,13 @@ export type Person = {
   ageGroup: AgeGroup;
   provinceId: string;
   clubId: string;
-  belt: string;
-  /** kyorugi weight class label, athletes only */
-  weightClass?: string;
+  disciplineId: string;
+  /** athlete level, or staff experience level */
+  level: string;
+  /** competition category: weight class, sport class or event; athletes only */
+  category?: string;
+  /** para only: impairment type */
+  impairment?: string;
   rankingPoints: number;
   /** coach / referee grade */
   grade?: string;
@@ -58,8 +63,6 @@ export type Person = {
   completeness: number;
   timeline: TimelineEvent[];
 };
-
-const rnd = createRandom(1405);
 
 const CITY_BY_PROVINCE: Record<string, string[]> = {
   thr: ["تهران", "شهریار", "اسلامشهر", "ورامین"],
@@ -74,40 +77,12 @@ const CITY_BY_PROVINCE: Record<string, string[]> = {
   gil: ["رشت", "لاهیجان", "انزلی"],
 };
 
-const CLUB_PREFIX = ["باشگاه", "مجموعه ورزشی", "خانه تکواندو", "آکادمی"] as const;
 const CLUB_NAMES = [
   "پیشگامان", "ستارگان", "سپهر", "آرش", "رستم", "فجر", "المپیک", "پرواز", "نوین", "تختی",
   "شهدا", "آزادی", "ققنوس", "پارس", "البرز", "مهرگان", "کوثر", "اندیشه", "سایه", "آفتاب",
 ] as const;
 
 const mainProvinceIds = ["thr", "isf", "krz", "frs", "kzs", "eaz", "maz", "alb", "krm", "gil"];
-
-export const clubs: Club[] = Array.from({ length: 42 }, (_, i) => {
-  const provinceId = i < 30 ? (mainProvinceIds[i % mainProvinceIds.length] as string) : rnd.pick(provinces).id;
-  const cities = CITY_BY_PROVINCE[provinceId] ?? [provinces.find((p) => p.id === provinceId)?.name ?? ""];
-  const expiryDays = rnd.int(-40, 420);
-  return {
-    id: `club-${i + 1}`,
-    name: `${rnd.pick(CLUB_PREFIX)} ${CLUB_NAMES[i % CLUB_NAMES.length]}${i >= CLUB_NAMES.length ? ` ${rnd.pick(cities)}` : ""}`,
-    provinceId,
-    city: rnd.pick(cities),
-    manager: `${rnd.pick(MALE_FIRST)} ${rnd.pick(LAST)}`,
-    athletes: rnd.int(60, 420),
-    coaches: rnd.int(3, 18),
-    licenseStatus: expiryDays < 0 ? "expired" : expiryDays < 45 ? "expiring" : "valid",
-    licenseExpiry: daysFromNow(expiryDays),
-    rating: Math.round((3 + rnd.next() * 2) * 10) / 10,
-    founded: rnd.int(1365, 1400),
-  };
-});
-
-export const clubById = Object.fromEntries(clubs.map((c) => [c.id, c])) as Record<string, Club>;
-
-export const MALE_WEIGHT_CLASSES = ["−۵۴", "−۵۸", "−۶۳", "−۶۸", "−۷۴", "−۸۰", "−۸۷", "+۸۷"] as const;
-export const FEMALE_WEIGHT_CLASSES = ["−۴۶", "−۴۹", "−۵۳", "−۵۷", "−۶۲", "−۶۷", "−۷۳", "+۷۳"] as const;
-const BELTS_ATHLETE = ["دان ۱", "دان ۲", "دان ۳", "کمربند قرمز", "کمربند آبی", "دان ۴"] as const;
-const COACH_GRADES = ["مربی درجه ۳", "مربی درجه ۲", "مربی درجه ۱", "مربی بین‌المللی"] as const;
-const REFEREE_GRADES = ["داور درجه ۳", "داور درجه ۲", "داور درجه ۱", "داور ملی", "داور بین‌المللی"] as const;
 
 function ageGroupOf(age: number): AgeGroup {
   if (age < 12) return "نونهالان";
@@ -116,77 +91,123 @@ function ageGroupOf(age: number): AgeGroup {
   return "بزرگسالان";
 }
 
-function buildTimeline(role: PersonRole, idx: number, memberSince: Date): TimelineEvent[] {
-  const r = createRandom(9000 + idx);
+const TIMELINE_KINDS: Record<PersonRole, { kind: TimelineEvent["kind"]; days: [number, number] }[]> = {
+  athlete: [
+    { kind: "competition", days: [300, 400] },
+    { kind: "medal", days: [200, 290] },
+    { kind: "medical", days: [120, 190] },
+    { kind: "medal", days: [40, 110] },
+    { kind: "competition", days: [3, 30] },
+  ],
+  coach: [
+    { kind: "course", days: [300, 500] },
+    { kind: "license", days: [150, 290] },
+    { kind: "course", days: [10, 140] },
+  ],
+  referee: [
+    { kind: "course", days: [300, 500] },
+    { kind: "competition", days: [100, 290] },
+    { kind: "license", days: [5, 90] },
+  ],
+};
+
+function buildTimeline(p: FederationProfile, role: PersonRole, idx: number, memberSince: Date): TimelineEvent[] {
+  const r = createRandom(9000 + idx + p.seed);
   const events: TimelineEvent[] = [
     { id: "t0", date: memberSince, kind: "membership", title: "ثبت عضویت در فدراسیون", detail: "تأیید هیئت استان" },
   ];
-  if (role === "athlete") {
-    events.push(
-      { id: "t1", date: daysFromNow(-r.int(300, 400)), kind: "competition", title: "لیگ دسته یک کشور", detail: "مرحله رفت" },
-      { id: "t2", date: daysFromNow(-r.int(200, 290)), kind: "medal", title: "مدال نقره قهرمانی استان", detail: "رده بزرگسالان" },
-      { id: "t3", date: daysFromNow(-r.int(120, 190)), kind: "medical", title: "معاینه سالانه پزشکی ورزشی", detail: "نتیجه: بلامانع" },
-      { id: "t4", date: daysFromNow(-r.int(40, 110)), kind: "medal", title: "مدال طلای قهرمانی کشور", detail: "+۱۲۰ امتیاز رنکینگ" },
-      { id: "t5", date: daysFromNow(-r.int(3, 30)), kind: "competition", title: "ثبت‌نام در اردوی تیم ملی", detail: "در انتظار تأیید کمیته فنی" },
-    );
-  } else if (role === "coach") {
-    events.push(
-      { id: "t1", date: daysFromNow(-r.int(300, 500)), kind: "course", title: "دوره مربیگری درجه ۲", detail: "نمره نهایی ۱۷٫۵" },
-      { id: "t2", date: daysFromNow(-r.int(150, 290)), kind: "license", title: "صدور کارت مربیگری", detail: "اعتبار تا یک سال" },
-      { id: "t3", date: daysFromNow(-r.int(10, 140)), kind: "course", title: "سمینار دانش‌افزایی قوانین جدید", detail: "۸ ساعت" },
-    );
-  } else {
-    events.push(
-      { id: "t1", date: daysFromNow(-r.int(300, 500)), kind: "course", title: "دوره داوری درجه ۱", detail: "قبول" },
-      { id: "t2", date: daysFromNow(-r.int(100, 290)), kind: "competition", title: "قضاوت در مسابقات قهرمانی کشور", detail: "۱۴ مبارزه" },
-      { id: "t3", date: daysFromNow(-r.int(5, 90)), kind: "license", title: "تمدید کارت داوری", detail: "تأیید کمیته داوران" },
-    );
-  }
+  TIMELINE_KINDS[role].forEach((k, i) => {
+    const [title, detail] = p.timeline[role][i] ?? ["", ""];
+    events.push({ id: `t${i + 1}`, date: daysFromNow(-r.int(k.days[0], k.days[1])), kind: k.kind, title, detail });
+  });
   return events.sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-export const people: Person[] = Array.from({ length: 160 }, (_, i) => {
-  const role: PersonRole = i < 110 ? "athlete" : i < 140 ? "coach" : "referee";
-  const gender: Gender = rnd.chance(role === "athlete" ? 0.42 : 0.3) ? "female" : "male";
-  const firstName = gender === "male" ? rnd.pick(MALE_FIRST) : rnd.pick(FEMALE_FIRST);
-  const lastName = rnd.pick(LAST);
-  const age = role === "athlete" ? rnd.int(10, 29) : rnd.int(26, 58);
-  const birthDate = daysFromNow(-age * 365 - rnd.int(0, 360));
-  const club = i < clubs.length ? (clubs[i] as Club) : rnd.pick(clubs);
-  const memberSince = daysFromNow(-rnd.int(200, 3200));
-  const statusRoll = rnd.next();
-  const status: PersonStatus = statusRoll < 0.8 ? "active" : statusRoll < 0.9 ? "pending" : statusRoll < 0.96 ? "expired" : "suspended";
-  const medRoll = rnd.next();
-  const weightClass =
-    role === "athlete" ? (gender === "male" ? rnd.pick(MALE_WEIGHT_CLASSES) : rnd.pick(FEMALE_WEIGHT_CLASSES)) : undefined;
-  return {
-    id: `p-${i + 1}`,
-    code: String(140500000 + 317 + i * 37),
-    firstName,
-    lastName,
-    fullName: `${firstName} ${lastName}`,
-    gender,
-    role,
-    birthDate,
-    age,
-    ageGroup: ageGroupOf(age),
-    provinceId: club.provinceId,
-    clubId: club.id,
-    belt: role === "athlete" ? rnd.pick(BELTS_ATHLETE) : `دان ${rnd.int(4, 8)}`,
-    weightClass,
-    rankingPoints: role === "athlete" ? rnd.int(40, 980) : 0,
-    grade: role === "coach" ? rnd.pick(COACH_GRADES) : role === "referee" ? rnd.pick(REFEREE_GRADES) : undefined,
-    status,
-    memberSince,
-    insuranceExpiry: daysFromNow(rnd.int(-20, 330)),
-    medicalStatus: medRoll < 0.84 ? "fit" : medRoll < 0.95 ? "needs-review" : "injured",
-    phone: `۰۹${rnd.int(10, 39)}${rnd.int(100, 999)}${rnd.int(1000, 9999)}`.replace(/[0-9]/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)] ?? d),
-    completeness: rnd.int(62, 100),
-    timeline: buildTimeline(role, i, memberSince),
-  };
-});
+export function buildPeople(p: FederationProfile, provinces: Province[]) {
+  const rnd = createRandom(p.seed);
 
-export const personById = Object.fromEntries(people.map((p) => [p.id, p])) as Record<string, Person>;
+  const clubs: Club[] = Array.from({ length: 42 }, (_, i) => {
+    const provinceId = i < 30 ? (mainProvinceIds[i % mainProvinceIds.length] as string) : rnd.pick(provinces).id;
+    const cities = CITY_BY_PROVINCE[provinceId] ?? [provinces.find((x) => x.id === provinceId)?.name ?? ""];
+    const expiryDays = rnd.int(-40, 420);
+    return {
+      id: `club-${i + 1}`,
+      name: `${rnd.pick(p.clubPrefixes)} ${CLUB_NAMES[i % CLUB_NAMES.length]}${i >= CLUB_NAMES.length ? ` ${rnd.pick(cities)}` : ""}`,
+      provinceId,
+      city: rnd.pick(cities),
+      manager: `${rnd.pick(MALE_FIRST)} ${rnd.pick(LAST)}`,
+      athletes: Math.max(18, Math.round(rnd.int(60, 420) * p.scale * 2)),
+      coaches: rnd.int(2, 12),
+      licenseStatus: expiryDays < 0 ? "expired" : expiryDays < 45 ? "expiring" : "valid",
+      licenseExpiry: daysFromNow(expiryDays),
+      rating: Math.round((3 + rnd.next() * 2) * 10) / 10,
+      founded: rnd.int(1365, 1400),
+    };
+  });
+
+  const clubById = Object.fromEntries(clubs.map((c) => [c.id, c])) as Record<string, Club>;
+
+  const totalWeight = p.disciplines.reduce((s, d) => s + d.weight, 0);
+  const pickDiscipline = () => {
+    let roll = rnd.next() * totalWeight;
+    for (const d of p.disciplines) {
+      roll -= d.weight;
+      if (roll <= 0) return d;
+    }
+    return p.disciplines[0]!;
+  };
+  const bracketDiscipline = p.disciplines.find((d) => d.id === p.bracketDisciplineId)!;
+
+  const people: Person[] = Array.from({ length: 160 }, (_, i) => {
+    const role: PersonRole = i < 110 ? "athlete" : i < 140 ? "coach" : "referee";
+    const gender: Gender = rnd.chance(role === "athlete" ? 0.38 : 0.3) ? "female" : "male";
+    const firstName = gender === "male" ? rnd.pick(MALE_FIRST) : rnd.pick(FEMALE_FIRST);
+    const lastName = rnd.pick(LAST);
+    const age = role === "athlete" ? rnd.int(p.athleteAge[0], p.athleteAge[1]) : rnd.int(26, 58);
+    const birthDate = daysFromNow(-age * 365 - rnd.int(0, 360));
+    const club = i < clubs.length ? (clubs[i] as Club) : rnd.pick(clubs);
+    const memberSince = daysFromNow(-rnd.int(200, 3200));
+    const statusRoll = rnd.next();
+    const status: PersonStatus = statusRoll < 0.8 ? "active" : statusRoll < 0.9 ? "pending" : statusRoll < 0.96 ? "expired" : "suspended";
+    const medRoll = rnd.next();
+    // The first 16 athletes compete in the bracket discipline, so brackets and rankings always have a full field.
+    const discipline = role === "athlete" && i < 16 ? bracketDiscipline : pickDiscipline();
+    const category = role === "athlete" ? rnd.pick(discipline.categories[gender]) : undefined;
+    return {
+      id: `p-${i + 1}`,
+      code: String(140500000 + 317 + i * 37 + (p.id === "assoc" ? 500000 : 0)),
+      firstName,
+      lastName,
+      fullName: `${firstName} ${lastName}`,
+      gender,
+      role,
+      birthDate,
+      age,
+      ageGroup: ageGroupOf(age),
+      provinceId: club.provinceId,
+      clubId: club.id,
+      disciplineId: discipline.id,
+      level: role === "athlete" ? rnd.pick(p.athleteLevels) : rnd.pick(p.staffLevels),
+      category,
+      impairment: p.impairments && role === "athlete" ? rnd.pick(p.impairments) : undefined,
+      rankingPoints: role === "athlete" ? rnd.int(40, 980) : 0,
+      grade: role === "coach" ? rnd.pick(p.coachGrades) : role === "referee" ? rnd.pick(p.refereeGrades) : undefined,
+      status,
+      memberSince,
+      insuranceExpiry: daysFromNow(rnd.int(-20, 330)),
+      medicalStatus: medRoll < 0.84 ? "fit" : medRoll < 0.95 ? "needs-review" : "injured",
+      phone: `۰۹${rnd.int(10, 39)}${rnd.int(100, 999)}${rnd.int(1000, 9999)}`.replace(/[0-9]/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)] ?? d),
+      completeness: rnd.int(62, 100),
+      timeline: buildTimeline(p, role, i, memberSince),
+    };
+  });
+
+  const personById = Object.fromEntries(people.map((x) => [x.id, x])) as Record<string, Person>;
+  const disciplineById = Object.fromEntries(p.disciplines.map((d) => [d.id, d]));
+  const disciplineName = (id: string) => disciplineById[id]?.name ?? "—";
+
+  return { clubs, clubById, people, personById, disciplineName };
+}
 
 export const roleLabel: Record<PersonRole, string> = { athlete: "ورزشکار", coach: "مربی", referee: "داور" };
 export const statusLabel: Record<PersonStatus, string> = {
@@ -201,9 +222,13 @@ export const medicalLabel: Record<Person["medicalStatus"], string> = {
   injured: "مصدوم",
 };
 
-/** "−۶۸" -> «تا ۶۸ کیلوگرم», "+۸۷" -> «بالای ۸۷ کیلوگرم». Reads naturally in RTL without sign reordering. */
-export function weightLabel(w?: string): string {
-  if (!w) return "—";
-  const n = w.replace(/[−+-]/g, "");
-  return w.startsWith("+") ? `بالای ${n} کیلوگرم` : `تا ${n} کیلوگرم`;
+/**
+ * Display text for a competition category.
+ * Weight classes ("−۵۹", "+۱۰۷") read as «تا ۵۹ کیلوگرم» / «بالای ۱۰۷ کیلوگرم»; other categories show as they are.
+ */
+export function categoryLabel(c?: string): string {
+  if (!c) return "—";
+  if (!/^[−+-][۰-۹0-9]/.test(c)) return c;
+  const n = c.replace(/[−+-]/g, "");
+  return c.startsWith("+") ? `بالای ${n} کیلوگرم` : `تا ${n} کیلوگرم`;
 }

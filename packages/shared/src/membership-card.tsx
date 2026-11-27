@@ -38,6 +38,8 @@ function Pattern({ seed, size = 56 }: { seed: string; size?: number }) {
 
 export type MembershipCardProps = {
   title: string;
+  /** issuing federation, printed in the card header */
+  federation: string;
   name: string;
   code: string;
   rows: { label: string; value: string }[];
@@ -46,7 +48,7 @@ export type MembershipCardProps = {
 };
 
 /** The federation membership card, rendered as a physical object. */
-export function MembershipCard({ title, name, code, rows, validUntil, className }: MembershipCardProps) {
+export function MembershipCard({ title, federation, name, code, rows, validUntil, className }: MembershipCardProps) {
   return (
     <div
       className={cn(
@@ -65,7 +67,7 @@ export function MembershipCard({ title, name, code, rows, validUntil, className 
           <div className="flex items-center gap-2">
             <LogoMark size={22} />
             <div className="leading-tight">
-              <p className="text-xs font-semibold">فدراسیون تکواندو</p>
+              <p className="text-xs font-semibold">{federation}</p>
               <p className="text-[11px] text-fg-muted">{title}</p>
             </div>
           </div>

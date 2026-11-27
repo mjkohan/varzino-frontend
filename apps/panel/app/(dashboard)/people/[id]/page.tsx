@@ -1,4 +1,4 @@
-import { clubById, medicalLabel, people, personById, pointsHistory, provinceById, roleLabel, statusLabel, weightLabel, type TimelineEvent } from "@varzino/demo-data";
+import { medicalLabel, roleLabel, statusLabel, categoryLabel, type TimelineEvent } from "@varzino/demo-data";
 import { TrendChart } from "@varzino/ui/charts/charts";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
@@ -13,12 +13,10 @@ import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { MembershipCard } from "@varzino/shared/membership-card";
 import { personStatusTone } from "@/components/tones";
-
-export function generateStaticParams() {
-  return people.map((p) => ({ id: p.id }));
-}
+import { getData } from "@/lib/session";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { personById } = await getData();
   const { id } = await params;
   return { title: personById[id]?.fullName ?? "پرونده" };
 }
@@ -34,6 +32,7 @@ const eventIcon: Record<TimelineEvent["kind"], React.ReactNode> = {
 };
 
 export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
+  const { clubById, disciplineName, personById, pointsHistory, profile, provinceById } = await getData();
   const { id } = await params;
   const p = personById[id];
   if (!p) notFound();
@@ -85,12 +84,14 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
                   { term: "تاریخ تولد", value: `${formatDate(p.birthDate)} (${formatNumber(p.age)} ساله)` },
                   { term: "رده سنی", value: p.ageGroup },
                   { term: "جنسیت", value: p.gender === "male" ? "مرد" : "زن" },
-                  { term: p.role === "athlete" ? "کمربند" : "درجه", value: p.grade ?? p.belt },
-                  ...(p.weightClass ? [{ term: "وزن", value: weightLabel(p.weightClass) }] : []),
+                  { term: "رشته", value: disciplineName(p.disciplineId) },
+                  { term: p.role === "athlete" ? profile.levelTitle : "درجه", value: p.grade ?? p.level },
+                  ...(p.category ? [{ term: profile.categoryTitle, value: categoryLabel(p.category) }] : []),
+                  ...(p.impairment ? [{ term: "نوع معلولیت", value: p.impairment }] : []),
                   { term: "عضویت از", value: formatDate(p.memberSince) },
                   { term: "تلفن همراه", value: <bdi dir="ltr">{p.phone}</bdi> },
                   { term: "باشگاه", value: club?.name ?? "—" },
-                  { term: "هیئت", value: `هیئت تکواندو ${province?.name ?? ""}` },
+                  { term: "هیئت", value: profile.boardName(province?.name ?? "") },
                 ]}
               />
             </CardBody>
@@ -130,12 +131,13 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
             <CardBody className="flex flex-col items-center gap-4">
               <MembershipCard
                 title={`کارت عضویت ${roleLabel[p.role]}`}
+                federation={profile.name}
                 name={p.fullName}
                 code={p.code}
                 validUntil={daysFromNow(212)}
                 rows={[
                   { label: "استان", value: province?.name ?? "" },
-                  { label: p.role === "athlete" ? "کمربند" : "درجه", value: p.grade ?? p.belt },
+                  { label: p.role === "athlete" ? "رشته" : "درجه", value: p.grade ?? disciplineName(p.disciplineId) },
                 ]}
               />
               <Button variant="secondary" className="w-full">

@@ -1,6 +1,5 @@
 import { daysFromNow } from "@varzino/utils";
-import { people } from "./people";
-import { clubs } from "./people";
+import type { Club, Person } from "./people";
 
 export type LicenseType = "club" | "coach" | "referee" | "athlete";
 export type LicenseStage = "submitted" | "board" | "federation" | "issued" | "rejected";
@@ -37,11 +36,12 @@ export const licenseStageLabel: Record<LicenseStage, string> = {
 
 export const licenseStages: LicenseStage[] = ["submitted", "board", "federation", "issued"];
 
-const coaches = people.filter((p) => p.role === "coach");
-const referees = people.filter((p) => p.role === "referee");
-const athletes = people.filter((p) => p.role === "athlete");
+export function buildLicenses(people: Person[], clubs: Club[], scale: number) {
+  const coaches = people.filter((p) => p.role === "coach");
+  const referees = people.filter((p) => p.role === "referee");
+  const athletes = people.filter((p) => p.role === "athlete");
 
-export const licenseRequests: LicenseRequest[] = [
+  const licenseRequests: LicenseRequest[] = [
   { id: "l-1", number: "۴۰۵-۱۲۸۴", type: "club", applicant: clubs[3]!.name, subjectId: clubs[3]!.id, provinceId: clubs[3]!.provinceId, submittedAt: daysFromNow(-2), stage: "board", reviewer: "دبیر هیئت استان" },
   { id: "l-2", number: "۴۰۵-۱۲۸۳", type: "coach", applicant: coaches[0]!.fullName, subjectId: coaches[0]!.id, provinceId: coaches[0]!.provinceId, submittedAt: daysFromNow(-3), stage: "federation", reviewer: "کمیته آموزش" },
   { id: "l-3", number: "۴۰۵-۱۲۸۱", type: "referee", applicant: referees[1]!.fullName, subjectId: referees[1]!.id, provinceId: referees[1]!.provinceId, submittedAt: daysFromNow(-4), stage: "submitted", missing: "گواهی دوره دانش‌افزایی" },
@@ -56,8 +56,8 @@ export const licenseRequests: LicenseRequest[] = [
   { id: "l-12", number: "۴۰۵-۱۲۵۲", type: "athlete", applicant: athletes[23]!.fullName, subjectId: athletes[23]!.id, provinceId: athletes[23]!.provinceId, submittedAt: daysFromNow(-14), stage: "federation", reviewer: "کارشناس عضویت فدراسیون" },
 ];
 
-/** Monthly issued licenses by type, last 6 months */
-export const licensesIssuedTrend = [
+  /** Monthly issued licenses by type, last 6 months */
+  const licensesIssuedTrend = [
   { month: "خرداد", club: 22, coach: 141, referee: 48, athlete: 2410 },
   { month: "تیر", club: 19, coach: 168, referee: 52, athlete: 2780 },
   { month: "مرداد", club: 25, coach: 152, referee: 39, athlete: 2530 },
@@ -66,9 +66,17 @@ export const licensesIssuedTrend = [
   { month: "آبان", club: 31, coach: 189, referee: 57, athlete: 3340 },
 ];
 
-/** Average days from submit to issue, per stage */
-export const stageDurations = [
+  /** Average days from submit to issue, per stage */
+  const stageDurations = [
   { stage: "بررسی هیئت استان", days: 2.4 },
   { stage: "تأیید فدراسیون", days: 1.6 },
   { stage: "چاپ و صدور", days: 0.5 },
 ];
+  for (const row of licensesIssuedTrend) {
+    row.club = Math.max(2, Math.round(row.club * scale * 1.5));
+    row.coach = Math.max(4, Math.round(row.coach * scale));
+    row.referee = Math.max(3, Math.round(row.referee * scale));
+    row.athlete = Math.round(row.athlete * scale);
+  }
+  return { licenseRequests, licensesIssuedTrend, stageDurations };
+}

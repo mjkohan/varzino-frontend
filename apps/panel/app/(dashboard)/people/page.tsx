@@ -1,14 +1,15 @@
-import { nationalTotals, people } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { PageHeader, Stat } from "@varzino/ui/components/data-display";
 import { formatNumber } from "@varzino/utils";
 import { Upload, UserPlus } from "lucide-react";
 import type { Metadata } from "next";
 import { PeopleList } from "@/components/people-list";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "پرونده اشخاص" };
 
-export default function PeoplePage() {
+export default async function PeoplePage() {
+  const { nationalTotals, people } = await getData();
   const pending = people.filter((p) => p.status === "pending").length;
   return (
     <div className="flex flex-col gap-6">

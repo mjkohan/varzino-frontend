@@ -1,4 +1,4 @@
-import { moduleById, modules, overviews, type Cell } from "@varzino/demo-data";
+import { moduleById, modules, type Cell } from "@varzino/demo-data";
 import { ColumnChart, TrendChart } from "@varzino/ui/charts/charts";
 import { Dot, StatusBadge } from "@varzino/ui/components/badge";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
@@ -8,9 +8,9 @@ import { Check } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ModuleIcon } from "@varzino/shared/module-icon";
-import { workspaces } from "@varzino/demo-data";
 import { Messenger, RoleMatrix } from "@/components/module-extras";
 import { ModuleWorkspace } from "@/components/workspace";
+import { getData } from "@/lib/session";
 
 export const dynamicParams = false;
 
@@ -29,6 +29,7 @@ function CellView({ cell }: { cell: Cell }) {
 }
 
 export default async function ModuleOverviewPage({ params }: { params: Promise<{ module: string }> }) {
+  const { overviews, workspaces } = await getData();
   const { module } = await params;
   const mod = moduleById[module];
   const data = overviews[module];

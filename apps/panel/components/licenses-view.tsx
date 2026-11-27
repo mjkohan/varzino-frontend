@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  licenseRequests,
-  licenseStageLabel,
-  licenseStages,
-  licenseTypeLabel,
-  personById,
-  provinceById,
-  type LicenseRequest,
-  type LicenseStage,
-} from "@varzino/demo-data";
+import { licenseStageLabel, licenseStages, licenseTypeLabel, type LicenseRequest, type LicenseStage } from "@varzino/demo-data";
 import { StatusBadge, type Tone } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card } from "@varzino/ui/components/card";
@@ -22,6 +13,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MembershipCard } from "@varzino/shared/membership-card";
 import { FilterTabs, SearchInput, Toolbar } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 const stageTone: Record<LicenseStage, Tone> = {
   submitted: "neutral",
@@ -32,6 +24,7 @@ const stageTone: Record<LicenseStage, Tone> = {
 };
 
 export function LicensesView() {
+  const { disciplineName, licenseRequests, personById, profile, provinceById } = useData();
   const [items, setItems] = useState<LicenseRequest[]>(licenseRequests);
   const [stage, setStage] = useState("pending");
   const [q, setQ] = useState("");
@@ -151,12 +144,13 @@ export function LicensesView() {
                   <p className="mb-3 text-sm font-medium text-fg">پیش‌نمایش کارت</p>
                   <MembershipCard
                     title={licenseTypeLabel[open.type]}
+                    federation={profile.name}
                     name={person.fullName}
                     code={person.code}
                     validUntil={open.validUntil ?? daysFromNow(365)}
                     rows={[
                       { label: "استان", value: provinceById[person.provinceId]?.name ?? "" },
-                      { label: person.grade ? "درجه" : "کمربند", value: person.grade ?? person.belt },
+                      { label: person.grade ? "درجه" : "رشته", value: person.grade ?? disciplineName(person.disciplineId) },
                     ]}
                   />
                 </div>

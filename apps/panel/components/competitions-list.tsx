@@ -1,6 +1,6 @@
 "use client";
 
-import { competitions, competitionStatusLabel, levelLabel, type CompetitionStatus } from "@varzino/demo-data";
+import { competitionStatusLabel, levelLabel, type CompetitionStatus } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Card } from "@varzino/ui/components/card";
 import { EmptyState, Table, TD, TH, THead, TR } from "@varzino/ui/components/data-display";
@@ -12,11 +12,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { statusTone } from "./tones";
 import { FilterTabs, SearchInput, Toolbar } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 
 const order: CompetitionStatus[] = ["live", "registration", "scheduled", "draft", "finished"];
 
 export function CompetitionsList() {
+  const { competitions } = useData();
   const [status, setStatus] = useState<string>("all");
   const [q, setQ] = useState("");
   const router = useRouter();
@@ -27,7 +29,7 @@ export function CompetitionsList() {
         .filter((c) => status === "all" || c.status === status)
         .filter((c) => !q.trim() || c.title.includes(q.trim()) || c.city.includes(q.trim()))
         .sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || a.startDate.getTime() - b.startDate.getTime()),
-    [status, q],
+    [competitions, status, q],
   );
 
   const options = [

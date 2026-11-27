@@ -1,6 +1,6 @@
 "use client";
 
-import { levelLabel, scoringRules, type CompetitionLevel } from "@varzino/demo-data";
+import { categoryLabel, levelLabel, type CompetitionLevel } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Card } from "@varzino/ui/components/card";
 import { DescriptionList, Stepper } from "@varzino/ui/components/data-display";
@@ -10,11 +10,10 @@ import { formatNumber, toPersianDigits } from "@varzino/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useData } from "@/components/data-provider";
 
-const steps = [{ label: "مشخصات" }, { label: "اوزان و رده" }, { label: "ثبت‌نام و هزینه" }, { label: "بازبینی" }];
+const steps = [{ label: "مشخصات" }, { label: "رشته و رده" }, { label: "ثبت‌نام و هزینه" }, { label: "بازبینی" }];
 
-const maleWeights = ["−۵۴", "−۵۸", "−۶۳", "−۶۸", "−۷۴", "−۸۰", "−۸۷", "+۸۷"];
-const femaleWeights = ["−۴۶", "−۴۹", "−۵۳", "−۵۷", "−۶۲", "−۶۷", "−۷۳", "+۷۳"];
 
 type Form = {
   title: string;
@@ -25,6 +24,7 @@ type Form = {
   days: string;
   ageGroup: string;
   gender: "male" | "female" | "mixed";
+  discipline: string;
   weights: string[];
   capacity: string;
   fee: string;
@@ -32,7 +32,7 @@ type Form = {
   notes: string;
 };
 
-const initial: Form = {
+const initial: Omit<Form, "discipline" | "weights"> = {
   title: "",
   level: "national",
   city: "",
@@ -41,7 +41,6 @@ const initial: Form = {
   days: "۲",
   ageGroup: "بزرگسالان",
   gender: "male",
-  weights: maleWeights,
   capacity: "۳۲۰",
   fee: "۳۰۰٬۰۰۰",
   deadline: "۱۴۰۵/۱۰/۰۵",
@@ -49,13 +48,22 @@ const initial: Form = {
 };
 
 export function CompetitionForm() {
+  const { profile, scoringRules } = useData();
+  const categoriesOf = (disciplineId: string, gender: Form["gender"]) => {
+    const d = profile.disciplines.find((x) => x.id === disciplineId) ?? profile.disciplines[0]!;
+    return [...(gender === "female" ? d.categories.female : d.categories.male)];
+  };
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<Form>(initial);
+  const [form, setForm] = useState<Form>(() => ({
+    ...initial,
+    discipline: profile.bracketDisciplineId,
+    weights: categoriesOf(profile.bracketDisciplineId, "male"),
+  }));
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const router = useRouter();
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
   const rule = scoringRules.find((r) => (form.level === "national" || form.level === "selection" ? r.level.startsWith("قهرمانی کشور") : form.level === "league" ? r.level.startsWith("لیگ") : form.level === "provincial" ? r.level.startsWith("قهرمانی استان") : r.level.startsWith("رقابت")));
-  const weightOptions = form.gender === "female" ? femaleWeights : maleWeights;
+  const weightOptions = categoriesOf(form.discipline, form.gender);
 
   function next() {
     if (step === 0) {
@@ -66,7 +74,7 @@ export function CompetitionForm() {
       if (Object.keys(e).length) return;
     }
     if (step === 1 && form.weights.length === 0) {
-      setErrors({ weights: "حداقل یک وزن را انتخاب کنید" });
+      setErrors({ weights: "حداقل یک رده را انتخاب کنید" });
       return;
     }
     setErrors({});
@@ -117,7 +125,23 @@ export function CompetitionForm() {
 
         {step === 1 ? (
           <div className="flex flex-col gap-6">
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-3">
+              <Field label="رشته" htmlFor="discipline">
+                <NativeSelect
+                  id="discipline"
+                  value={form.discipline}
+                  onChange={(e) => {
+                    const d = e.target.value;
+                    setForm((f) => ({ ...f, discipline: d, weights: categoriesOf(d, f.gender) }));
+                  }}
+                >
+                  {profile.disciplines.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
               <Field label="رده سنی" htmlFor="age">
                 <NativeSelect id="age" value={form.ageGroup} onChange={(e) => set("ageGroup", e.target.value)}>
                   {["نونهالان", "نوجوانان", "جوانان", "بزرگسالان"].map((a) => (
@@ -131,7 +155,7 @@ export function CompetitionForm() {
                   value={form.gender}
                   onChange={(e) => {
                     const g = e.target.value as Form["gender"];
-                    setForm((f) => ({ ...f, gender: g, weights: g === "female" ? femaleWeights : maleWeights }));
+                    setForm((f) => ({ ...f, gender: g, weights: categoriesOf(f.discipline, g) }));
                   }}
                 >
                   <option value="male">آقایان</option>
@@ -141,8 +165,8 @@ export function CompetitionForm() {
               </Field>
             </div>
             <fieldset>
-              <legend className="text-sm font-medium text-fg">اوزان (کیلوگرم)</legend>
-              <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
+              <legend className="text-sm font-medium text-fg">{profile.categoryTitle}</legend>
+              <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {weightOptions.map((w) => {
                   const on = form.weights.includes(w);
                   return (
@@ -156,7 +180,7 @@ export function CompetitionForm() {
                         on ? "border-accent bg-accent-soft font-medium text-accent-ink" : "border-hairline-strong bg-surface text-fg-secondary hover:bg-raised",
                       )}
                     >
-                      {w.startsWith("+") ? `بالای ${w.slice(1)}` : `تا ${w.slice(1)}`}
+                      {categoryLabel(w)}
                     </button>
                   );
                 })}
@@ -200,7 +224,8 @@ export function CompetitionForm() {
                 { term: "محل", value: [form.venue, form.city].filter(Boolean).join("، ") || "—" },
                 { term: "زمان", value: `${toPersianDigits(form.start)}، ${toPersianDigits(form.days)} روز` },
                 { term: "رده سنی و بخش", value: `${form.ageGroup}، ${form.gender === "male" ? "آقایان" : form.gender === "female" ? "بانوان" : "آقایان و بانوان"}` },
-                { term: "اوزان", value: `${formatNumber(form.weights.length)} وزن` },
+                { term: "رشته", value: profile.disciplines.find((d) => d.id === form.discipline)?.name ?? "—" },
+                { term: profile.categoryTitle, value: `${formatNumber(form.weights.length)} رده` },
                 { term: "ظرفیت", value: `${toPersianDigits(form.capacity)} نفر` },
                 { term: "ورودیه", value: `${toPersianDigits(form.fee)} تومان` },
               ]}

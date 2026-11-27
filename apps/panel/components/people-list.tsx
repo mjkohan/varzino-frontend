@@ -1,6 +1,6 @@
 "use client";
 
-import { clubById, people, provinceById, roleLabel, statusLabel, type PersonRole } from "@varzino/demo-data";
+import { categoryLabel, roleLabel, statusLabel, type PersonRole } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Card } from "@varzino/ui/components/card";
 import { CodeChip } from "@varzino/ui/components/code-chip";
@@ -14,11 +14,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { FilterTabs, Pagination, SearchInput, Toolbar } from "./list-toolbar";
 import { personStatusTone } from "./tones";
+import { useData } from "@/components/data-provider";
 
 
 const PAGE = 12;
 
 export function PeopleList() {
+  const { clubById, disciplineName, people, provinceById } = useData();
   const [role, setRole] = useState<string>("all");
   const [province, setProvince] = useState<string>("all");
   const [q, setQ] = useState("");
@@ -33,7 +35,7 @@ export function PeopleList() {
         (province === "all" || p.provinceId === province) &&
         (!term || p.fullName.includes(term) || toPersianDigits(p.code).includes(toPersianDigits(term))),
     );
-  }, [role, province, q]);
+  }, [people, role, province, q]);
 
   const pageCount = Math.ceil(filtered.length / PAGE);
   const rows = filtered.slice(page * PAGE, page * PAGE + PAGE);
@@ -88,7 +90,7 @@ export function PeopleList() {
             <TH>کد عضویت</TH>
             <TH>نقش</TH>
             <TH>باشگاه و استان</TH>
-            <TH>درجه / کمربند</TH>
+            <TH>رشته و رده</TH>
             <TH>وضعیت</TH>
           </THead>
           <tbody>
@@ -113,7 +115,10 @@ export function PeopleList() {
                   {clubById[p.clubId]?.name}
                   <span className="block text-xs text-fg-muted">{provinceById[p.provinceId]?.name}</span>
                 </TD>
-                <TD className="text-fg-secondary">{p.grade ?? p.belt}</TD>
+                <TD className="text-fg-secondary">
+                  {disciplineName(p.disciplineId)}
+                  <span className="block text-xs text-fg-muted">{p.grade ?? (p.category ? categoryLabel(p.category) : p.level)}</span>
+                </TD>
                 <TD>
                   <StatusBadge tone={personStatusTone[p.status]}>{statusLabel[p.status]}</StatusBadge>
                 </TD>

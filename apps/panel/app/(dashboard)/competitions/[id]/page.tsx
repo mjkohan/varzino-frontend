@@ -1,4 +1,4 @@
-import { competitionById, competitions, competitionStatusLabel, levelLabel } from "@varzino/demo-data";
+import { competitionStatusLabel, levelLabel } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { PageHeader, Stat } from "@varzino/ui/components/data-display";
@@ -9,17 +9,16 @@ import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { CompetitionTabs } from "@/components/competition-tabs";
 import { statusTone } from "@/components/tones";
-
-export function generateStaticParams() {
-  return competitions.map((c) => ({ id: c.id }));
-}
+import { getData } from "@/lib/session";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { competitionById } = await getData();
   const { id } = await params;
   return { title: competitionById[id]?.title ?? "مسابقه" };
 }
 
 export default async function CompetitionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { competitionById, disciplineName } = await getData();
   const { id } = await params;
   const c = competitionById[id];
   if (!c) notFound();
@@ -61,7 +60,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ id
           value={`${formatNumber(c.registered)} از ${formatNumber(c.capacity)}`}
           hint={c.status === "registration" ? `مهلت ثبت‌نام: ${formatDate(c.registrationDeadline, "dayMonth")}` : "ثبت‌نام بسته است"}
         />
-        <Stat label="اوزان" value={formatNumber(8)} hint="کیوروگی، طبق آیین‌نامه رده سنی" />
+        <Stat label="رده‌ها" value={formatNumber(c.categories)} hint={`${disciplineName(c.disciplineId)}، طبق آیین‌نامه`} />
         <Stat label="داوران منصوب" value={formatNumber(c.referees)} hint="کمیته داوران" />
         <Stat label="ورودیه هر ورزشکار" value={formatToman(c.fee)} hint={`ضریب رنکینگ: ${formatNumber(c.rankingFactor)}`} />
       </div>

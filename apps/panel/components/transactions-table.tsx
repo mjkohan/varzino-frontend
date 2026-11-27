@@ -1,6 +1,6 @@
 "use client";
 
-import { transactions, txKindLabel, txStatusLabel, type TxStatus } from "@varzino/demo-data";
+import { txKindLabel, txStatusLabel, type TxStatus } from "@varzino/demo-data";
 import { StatusBadge, type Tone } from "@varzino/ui/components/badge";
 import { Card } from "@varzino/ui/components/card";
 import { CodeChip } from "@varzino/ui/components/code-chip";
@@ -9,10 +9,12 @@ import { cn } from "@varzino/ui/lib/cn";
 import { formatDateTime, formatToman } from "@varzino/utils";
 import { useMemo, useState } from "react";
 import { FilterTabs, SearchInput, Toolbar } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 const tone: Record<TxStatus, Tone> = { paid: "positive", pending: "warning", failed: "negative", refunded: "neutral" };
 
 export function TransactionsTable() {
+  const { transactions } = useData();
   const [dir, setDir] = useState("all");
   const [q, setQ] = useState("");
   const rows = useMemo(
@@ -22,7 +24,7 @@ export function TransactionsTable() {
           (dir === "all" || (dir === "in" ? t.amount > 0 : t.amount < 0)) &&
           (!q.trim() || t.title.includes(q.trim()) || t.party.includes(q.trim())),
       ),
-    [dir, q],
+    [transactions, dir, q],
   );
   return (
     <Card>

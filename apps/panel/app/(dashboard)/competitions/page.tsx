@@ -1,4 +1,3 @@
-import { competitions } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { PageHeader, Stat } from "@varzino/ui/components/data-display";
 import { formatNumber } from "@varzino/utils";
@@ -6,10 +5,12 @@ import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompetitionsList } from "@/components/competitions-list";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "مسابقات" };
 
-export default function CompetitionsPage() {
+export default async function CompetitionsPage() {
+  const { competitions } = await getData();
   const open = competitions.filter((c) => c.status === "registration");
   const registered = competitions.filter((c) => c.status !== "draft" && c.status !== "finished").reduce((s, c) => s + c.registered, 0);
   return (

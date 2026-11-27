@@ -1,6 +1,5 @@
 "use client";
 
-import { me, myNotifications } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Avatar } from "@varzino/ui/components/misc";
 import {
@@ -18,6 +17,8 @@ import { formatRelative } from "@varzino/utils";
 import { Bell, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/app/login/actions";
+import { useData } from "../data-provider";
 
 const links = [
   { href: "/me", label: "خانه" },
@@ -30,6 +31,7 @@ const links = [
 
 export function ParticipantHeader() {
   const pathname = usePathname();
+  const { me, myNotifications, profile } = useData();
   return (
     <header className="sticky top-0 z-30 border-b border-hairline bg-bg/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between gap-4 px-4 md:px-8">
@@ -68,17 +70,15 @@ export function ParticipantHeader() {
             <DropdownMenuContent className="w-60">
               <div className="px-2.5 py-2">
                 <p className="text-sm font-medium text-fg">{me.fullName}</p>
-                <p className="text-xs text-fg-muted">ورزشکار</p>
+                <p className="text-xs text-fg-muted">ورزشکار، {profile.shortName}</p>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <a href={LANDING_URL}>صفحه معرفی ورزینو</a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/login">
-                  <LogOut className="icon-dir" />
-                  ورود با نقش دیگر
-                </Link>
+              <DropdownMenuItem onSelect={() => void logout()}>
+                <LogOut className="icon-dir" />
+                خروج
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

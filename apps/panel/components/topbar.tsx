@@ -1,6 +1,5 @@
 "use client";
 
-import { approvals, demoRoles, type DemoRole } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Avatar } from "@varzino/ui/components/misc";
 import {
@@ -13,25 +12,16 @@ import {
 } from "@varzino/ui/components/overlays";
 import { cn } from "@varzino/ui/lib/cn";
 import { formatNumber, formatRelative } from "@varzino/utils";
-import { Bell, Check, ChevronsUpDown, LogOut, Menu, X } from "lucide-react";
+import { Bell, LogOut, Menu, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@varzino/shared/logo";
 import { CommandMenu } from "./command-menu";
 import { SidebarNav } from "./sidebar";
 import { LANDING_URL } from "@varzino/shared/urls";
-
-const DEMO_PEOPLE: Record<string, string> = {
-  federation: "محمدرضا کاظمی",
-  board: "سارا کریمی",
-  club: "بهنام عباسی",
-};
-
-function setRole(id: string) {
-  document.cookie = `varzino-role=${id}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
-}
+import { logout } from "@/app/login/actions";
+import { useData, useSessionUser } from "./data-provider";
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -64,48 +54,20 @@ function MobileNav() {
   );
 }
 
-export function Topbar({ role }: { role: DemoRole }) {
-  const router = useRouter();
-  const userName = DEMO_PEOPLE[role.id] ?? "کاربر نمایشی";
+export function Topbar() {
+  const user = useSessionUser();
+  const { approvals } = useData();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-hairline bg-bg/90 px-4 backdrop-blur-md md:px-8">
       <MobileNav />
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="flex h-10 min-w-0 cursor-pointer items-center gap-2 rounded-control px-2 text-start transition-colors hover:bg-raised"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium leading-5 text-fg">{role.scope}</p>
-              <p className="hidden truncate text-xs leading-4 text-fg-muted sm:block">{role.title}</p>
-            </div>
-            <ChevronsUpDown aria-hidden className="size-4 shrink-0 text-fg-muted" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72">
-          <DropdownMenuLabel>ورود با نقش دیگر</DropdownMenuLabel>
-          {demoRoles.map((r) => (
-            <DropdownMenuItem
-              key={r.id}
-              onSelect={() => {
-                setRole(r.id);
-                if (r.home !== "/") router.push(r.home);
-                else router.refresh();
-              }}
-              className="h-auto items-start py-2"
-            >
-              <span className="mt-0.5 flex size-4 items-center justify-center">{r.id === role.id ? <Check /> : null}</span>
-              <span className="flex flex-col">
-                <span className="font-medium">{r.title}</span>
-                <span className="text-xs text-fg-muted">{r.scope}</span>
-              </span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex h-10 min-w-0 items-center px-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium leading-5 text-fg">{user.scope}</p>
+          <p className="hidden truncate text-xs leading-4 text-fg-muted sm:block">{user.title}</p>
+        </div>
+      </div>
 
       <div className="flex flex-1 justify-center px-2">
         <div className="hidden w-full max-w-sm md:block">
@@ -141,23 +103,21 @@ export function Topbar({ role }: { role: DemoRole }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button type="button" aria-label="حساب کاربری" className={cn("ms-1 cursor-pointer rounded-full transition-opacity hover:opacity-85")}>
-              <Avatar name={userName} size={34} />
+              <Avatar name={user.name} size={34} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-60">
             <div className="px-2.5 py-2">
-              <p className="text-sm font-medium text-fg">{userName}</p>
-              <p className="text-xs text-fg-muted">{role.title}</p>
+              <p className="text-sm font-medium text-fg">{user.name}</p>
+              <p className="text-xs text-fg-muted">{user.title}</p>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <a href={LANDING_URL}>صفحه معرفی ورزینو</a>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/login">
-                <LogOut className="icon-dir" />
-                خروج از نسخه نمایشی
-              </Link>
+            <DropdownMenuItem onSelect={() => void logout()}>
+              <LogOut className="icon-dir" />
+              خروج
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

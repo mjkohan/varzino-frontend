@@ -10,8 +10,8 @@ export type Province = {
   growth: number;
 };
 
-// Figures are demo values sized roughly by population.
-export const provinces: Province[] = [
+// Base figures sized roughly by population; each federation scales them.
+const baseProvinces: Province[] = [
   { id: "thr", name: "تهران", athletes: 18420, clubs: 412, coaches: 1260, referees: 342, growth: 6.2 },
   { id: "isf", name: "اصفهان", athletes: 9840, clubs: 221, coaches: 640, referees: 188, growth: 8.1 },
   { id: "krz", name: "خراسان رضوی", athletes: 9120, clubs: 204, coaches: 598, referees: 171, growth: 4.4 },
@@ -45,14 +45,28 @@ export const provinces: Province[] = [
   { id: "ilm", name: "ایلام", athletes: 610, clubs: 15, coaches: 41, referees: 11, growth: 3.4 },
 ];
 
-export const provinceById = Object.fromEntries(provinces.map((p) => [p.id, p])) as Record<string, Province>;
+/** Province names do not depend on the federation. */
+export const provinceNames = Object.fromEntries(baseProvinces.map((p) => [p.id, p.name])) as Record<string, string>;
+export const provinceList = baseProvinces.map((p) => ({ id: p.id, name: p.name }));
 
-export const nationalTotals = provinces.reduce(
-  (acc, p) => ({
-    athletes: acc.athletes + p.athletes,
-    clubs: acc.clubs + p.clubs,
-    coaches: acc.coaches + p.coaches,
-    referees: acc.referees + p.referees,
-  }),
-  { athletes: 0, clubs: 0, coaches: 0, referees: 0 },
-);
+export function buildProvinces(scale: number, seed: number) {
+  const provinces: Province[] = baseProvinces.map((p, i) => ({
+    ...p,
+    athletes: Math.round(p.athletes * scale),
+    clubs: Math.max(3, Math.round(p.clubs * scale * 1.4)),
+    coaches: Math.max(4, Math.round(p.coaches * scale)),
+    referees: Math.max(3, Math.round(p.referees * scale * 1.2)),
+    growth: Math.round((p.growth + (((seed + i * 7) % 9) - 4) * 0.6) * 10) / 10,
+  }));
+  const provinceById = Object.fromEntries(provinces.map((p) => [p.id, p])) as Record<string, Province>;
+  const nationalTotals = provinces.reduce(
+    (acc, p) => ({
+      athletes: acc.athletes + p.athletes,
+      clubs: acc.clubs + p.clubs,
+      coaches: acc.coaches + p.coaches,
+      referees: acc.referees + p.referees,
+    }),
+    { athletes: 0, clubs: 0, coaches: 0, referees: 0 },
+  );
+  return { provinces, provinceById, nationalTotals };
+}

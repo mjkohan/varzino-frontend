@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  levelLabel,
-  me,
-  myRegistrations,
-  myRegistrationStatusLabel,
-  myWallet,
-  openForMe,
-  weightLabel,
-  type Competition,
-  type MyRegistration,
-} from "@varzino/demo-data";
+import { categoryLabel, levelLabel, type Competition, type MyRegistration } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardHeader } from "@varzino/ui/components/card";
@@ -22,10 +12,12 @@ import { CircleAlert, CircleCheck, CreditCard, Wallet } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useData } from "@/components/data-provider";
 
 const statusTone = { "pending-payment": "warning", registered: "info", weighed: "accent", finished: "neutral" } as const;
 
 function RegisterDialog({ c, onClose, onDone }: { c: Competition; onClose: () => void; onDone: (r: MyRegistration) => void }) {
+  const { me, myWallet, profile } = useData();
   const [step, setStep] = useState(0);
   const [method, setMethod] = useState<"wallet" | "gateway">("wallet");
   const fee = c.fee;
@@ -41,8 +33,8 @@ function RegisterDialog({ c, onClose, onDone }: { c: Competition; onClose: () =>
             <>
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <dt className="text-xs text-fg-muted">وزن شما</dt>
-                  <dd className="mt-0.5 text-fg">{weightLabel(me.weightClass)}</dd>
+                  <dt className="text-xs text-fg-muted">{profile.categoryTitle}</dt>
+                  <dd className="mt-0.5 text-fg">{categoryLabel(me.category)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-fg-muted">رده</dt>
@@ -52,7 +44,7 @@ function RegisterDialog({ c, onClose, onDone }: { c: Competition; onClose: () =>
               <ul className="flex flex-col divide-y divide-hairline rounded-card border border-hairline text-sm">
                 {[
                   { t: "کارت عضویت معتبر", ok: true },
-                  { t: "معاینه پزشکی کمتر از ۶ ماه", ok: true },
+                  { t: profile.impairments ? "کلاس‌بندی پزشکی معتبر" : "معاینه پزشکی کمتر از ۶ ماه", ok: true },
                   { t: "بیمه ورزشی تا روز مسابقه معتبر است", ok: true },
                   { t: "تأیید مربی باشگاه", ok: true },
                 ].map((x) => (
@@ -111,11 +103,11 @@ function RegisterDialog({ c, onClose, onDone }: { c: Competition; onClose: () =>
                   <CircleCheck className="size-6" />
                 </span>
                 <p className="text-lg font-medium text-fg">ثبت‌نام شما قطعی شد</p>
-                <p className="text-sm text-fg-secondary">زمان وزن‌کشی و قرعه‌کشی از طریق اعلان و پیامک به شما اطلاع داده می‌شود.</p>
+                <p className="text-sm text-fg-secondary">زمان {profile.checkIn} و قرعه‌کشی از طریق اعلان و پیامک به شما اطلاع داده می‌شود.</p>
               </div>
               <Button
                 onClick={() => {
-                  onDone({ id: `new-${c.id}`, competition: c, weight: me.weightClass ?? "", status: "registered" });
+                  onDone({ id: `new-${c.id}`, competition: c, weight: me.category ?? "", status: "registered" });
                   toast.success("ثبت‌نام قطعی شد");
                 }}
               >
@@ -130,6 +122,7 @@ function RegisterDialog({ c, onClose, onDone }: { c: Competition; onClose: () =>
 }
 
 export function MyCompetitions() {
+  const { myRegistrationStatusLabel, myRegistrations, openForMe, profile } = useData();
   const params = useSearchParams();
   const [mine, setMine] = useState<MyRegistration[]>(myRegistrations);
   const [registering, setRegistering] = useState<Competition | null>(() => openForMe.find((c) => c.id === params.get("register")) ?? null);
@@ -138,12 +131,12 @@ export function MyCompetitions() {
   return (
     <div className="flex flex-col gap-4">
       <Card>
-        <CardHeader title="ثبت‌نام‌های من" description="وضعیت ثبت‌نام، وزن‌کشی و نتیجه" />
+        <CardHeader title="ثبت‌نام‌های من" description={`وضعیت ثبت‌نام، ${profile.checkIn} و نتیجه`} />
         <Table className="mt-4">
           <THead>
             <TH>مسابقه</TH>
             <TH>تاریخ</TH>
-            <TH>وزن</TH>
+            <TH>{profile.categoryTitle}</TH>
             <TH>نتیجه</TH>
             <TH>وضعیت</TH>
           </THead>
@@ -155,7 +148,7 @@ export function MyCompetitions() {
                   <p className="text-xs text-fg-muted">{r.competition.city}</p>
                 </TD>
                 <TD className="text-fg-secondary">{formatDate(r.competition.startDate)}</TD>
-                <TD className="text-fg-secondary">{weightLabel(r.weight)}</TD>
+                <TD className="text-fg-secondary">{categoryLabel(r.weight)}</TD>
                 <TD className="text-fg-secondary">
                   {r.result ? (
                     <>
@@ -180,7 +173,7 @@ export function MyCompetitions() {
       </Card>
 
       <Card>
-        <CardHeader title="مسابقات باز برای ثبت‌نام" description="فقط مسابقاتی که با بخش، رده سنی و وزن شما جور است" />
+        <CardHeader title="مسابقات باز برای ثبت‌نام" description="فقط مسابقاتی که با رشته، بخش و رده سنی شما جور است" />
         <ul className="mt-2 flex flex-col px-5 pb-3">
           {open.map((c) => (
             <li key={c.id} className="flex flex-col gap-3 border-b border-hairline py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">

@@ -12,3 +12,5 @@ export * from "./overviews";
 export * from "./dashboard";
 export * from "./workspaces";
 export * from "./participant";
+export * from "./federations";
+export * from "./dataset";

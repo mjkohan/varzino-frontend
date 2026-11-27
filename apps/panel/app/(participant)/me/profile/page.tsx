@@ -1,4 +1,4 @@
-import { clubById, me, medicalLabel, pointsHistory, provinceById, weightLabel, type TimelineEvent } from "@varzino/demo-data";
+import { medicalLabel, categoryLabel, type TimelineEvent } from "@varzino/demo-data";
 import { TrendChart } from "@varzino/ui/charts/charts";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
 import { DescriptionList, PageHeader, Timeline } from "@varzino/ui/components/data-display";
@@ -6,6 +6,7 @@ import { formatDate, formatNumber } from "@varzino/utils";
 import { Award, BadgeCheck, GraduationCap, HeartPulse, Repeat, Swords, UserCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { ProfileEdit } from "@/components/participant/sections";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "پرونده من" };
 
@@ -19,7 +20,8 @@ const eventIcon: Record<TimelineEvent["kind"], React.ReactNode> = {
   transfer: <Repeat />,
 };
 
-export default function MyProfilePage() {
+export default async function MyProfilePage() {
+  const { clubById, disciplineName, me, pointsHistory, profile, provinceById } = await getData();
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="پرونده من" description="همان پرونده‌ای که فدراسیون و هیئت می‌بینند" />
@@ -33,9 +35,11 @@ export default function MyProfilePage() {
                   { term: "نام", value: me.fullName },
                   { term: "تاریخ تولد", value: formatDate(me.birthDate) },
                   { term: "باشگاه", value: clubById[me.clubId]?.name ?? "—" },
-                  { term: "هیئت", value: `هیئت تکواندو ${provinceById[me.provinceId]?.name ?? ""}` },
-                  { term: "کمربند", value: me.belt },
-                  { term: "وزن", value: weightLabel(me.weightClass) },
+                  { term: "هیئت", value: profile.boardName(provinceById[me.provinceId]?.name ?? "") },
+                  { term: "رشته", value: disciplineName(me.disciplineId) },
+                  { term: profile.levelTitle, value: me.level },
+                  { term: profile.categoryTitle, value: categoryLabel(me.category) },
+                  ...(me.impairment ? [{ term: "نوع معلولیت", value: me.impairment }] : []),
                   { term: "عضویت از", value: formatDate(me.memberSince) },
                   { term: "معاینه پزشکی", value: medicalLabel[me.medicalStatus] },
                 ]}

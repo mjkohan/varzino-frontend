@@ -13,7 +13,7 @@ export default function NotFound() {
       </div>
       <div className="flex gap-2">
         <Button asChild>
-          <a href={panelLoginUrl}>ورود به نسخه نمایشی</a>
+          <a href={panelLoginUrl}>ورود به سامانه</a>
         </Button>
         <Button asChild variant="secondary">
           <Link href="/">صفحه اصلی</Link>

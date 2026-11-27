@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  bracketFor,
-  categoriesFor,
-  clubById,
-  competitionById,
-  liveSchedule,
-  medalTable,
-  people,
-  provinceById,
-  weightLabel,
-} from "@varzino/demo-data";
+import { categoryLabel } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
@@ -26,26 +16,29 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bracket } from "@varzino/shared/bracket";
+import { useData } from "@/components/data-provider";
 
 export function CompetitionTabs({ id }: { id: string }) {
+  const { bracketFor, categoriesFor, clubById, competitionById, liveSchedule, medalTable, people, profile, provinceById } = useData();
+  const station = profile.copy.myStation[0];
   const c = competitionById[id]!;
-  const categories = useMemo(() => categoriesFor(c), [c]);
+  const categories = useMemo(() => categoriesFor(c), [categoriesFor, c]);
   const [category, setCategory] = useState(categories[3]?.id ?? "");
-  const rounds = useMemo(() => bracketFor(c.id), [c.id]);
+  const rounds = useMemo(() => bracketFor(c.id), [bracketFor, c.id]);
   const hasDraw = c.status === "live" || c.status === "finished" || c.status === "scheduled";
   const registrants = useMemo(
     () =>
       people
-        .filter((p) => p.role === "athlete" && (c.gender === "mixed" || p.gender === c.gender))
+        .filter((p) => p.role === "athlete" && p.disciplineId === c.disciplineId && (c.gender === "mixed" || p.gender === c.gender))
         .slice(0, 14),
-    [c.gender],
+    [people, c.disciplineId, c.gender],
   );
 
   return (
     <Tabs defaultValue={hasDraw ? "draw" : "registrations"} className="flex flex-col gap-5">
       <TabsList>
         <TabsTrigger value="draw">جدول مسابقات</TabsTrigger>
-        <TabsTrigger value="categories">اوزان</TabsTrigger>
+        <TabsTrigger value="categories">رده‌ها</TabsTrigger>
         <TabsTrigger value="registrations">ثبت‌نام‌ها</TabsTrigger>
         <TabsTrigger value="schedule">برنامه</TabsTrigger>
         <TabsTrigger value="medals">جدول مدال</TabsTrigger>
@@ -58,7 +51,7 @@ export function CompetitionTabs({ id }: { id: string }) {
             description="هشت نفر برتر پس از مرحله مقدماتی، بر اساس رنکینگ سرگروه‌بندی شده‌اند"
             className="flex-col sm:flex-row"
             action={
-              <NativeSelect aria-label="وزن" value={category} onChange={(e) => setCategory(e.target.value)} className="w-44">
+              <NativeSelect aria-label={profile.categoryTitle} value={category} onChange={(e) => setCategory(e.target.value)} className="w-44">
                 {categories.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.label}
@@ -74,10 +67,10 @@ export function CompetitionTabs({ id }: { id: string }) {
               <EmptyState
                 icon={<Swords />}
                 title="قرعه‌کشی هنوز انجام نشده"
-                description="پس از پایان مهلت ثبت‌نام و وزن‌کشی، جدول به‌صورت خودکار و بر اساس رنکینگ ساخته می‌شود."
+                description={`پس از پایان مهلت ثبت‌نام و ${profile.checkIn}، جدول به‌صورت خودکار و بر اساس رنکینگ ساخته می‌شود.`}
                 action={
-                  <Button variant="secondary" onClick={() => toast("قرعه‌کشی آزمایشی ساخته شد، هنوز منتشر نشده")}>
-                    ساخت قرعه آزمایشی
+                  <Button variant="secondary" onClick={() => toast("پیش‌نمایش قرعه ساخته شد، هنوز منتشر نشده")}>
+                    پیش‌نمایش قرعه
                   </Button>
                 }
               />
@@ -90,9 +83,9 @@ export function CompetitionTabs({ id }: { id: string }) {
         <Card>
           <Table>
             <THead>
-              <TH>وزن</TH>
+              <TH>{profile.categoryTitle}</TH>
               <TH numeric>ثبت‌نام</TH>
-              <TH>زمین</TH>
+              <TH>{station}</TH>
               <TH>وضعیت</TH>
             </THead>
             <tbody>
@@ -100,7 +93,7 @@ export function CompetitionTabs({ id }: { id: string }) {
                 <TR key={w.id}>
                   <TD className="font-medium">{w.label}</TD>
                   <TD numeric>{formatNumber(w.registered)}</TD>
-                  <TD className="text-fg-secondary">زمین {formatNumber(w.mat)}</TD>
+                  <TD className="text-fg-secondary">{station} {formatNumber(w.mat)}</TD>
                   <TD>
                     {w.status === "done" ? (
                       <StatusBadge tone="positive">نتایج ثبت شد</StatusBadge>
@@ -133,7 +126,7 @@ export function CompetitionTabs({ id }: { id: string }) {
               <TH>ورزشکار</TH>
               <TH>کد عضویت</TH>
               <TH>باشگاه</TH>
-              <TH>وزن</TH>
+              <TH>{profile.categoryTitle}</TH>
               <TH>مدارک</TH>
             </THead>
             <tbody>
@@ -152,7 +145,7 @@ export function CompetitionTabs({ id }: { id: string }) {
                     {clubById[p.clubId]?.name}
                     <span className="text-fg-muted">، {provinceById[p.provinceId]?.name}</span>
                   </TD>
-                  <TD className="text-fg-secondary">{weightLabel(p.weightClass)}</TD>
+                  <TD className="text-fg-secondary">{categoryLabel(p.category)}</TD>
                   <TD>
                     {i % 6 === 4 ? (
                       <StatusBadge tone="warning">بیمه منقضی</StatusBadge>

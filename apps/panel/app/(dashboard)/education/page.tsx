@@ -1,4 +1,4 @@
-import { trackLabel, trackStats } from "@varzino/demo-data";
+import { trackLabel } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
 import { BarList, PageHeader, Stat } from "@varzino/ui/components/data-display";
@@ -6,10 +6,12 @@ import { formatNumber, formatPercent } from "@varzino/utils";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import { EducationView } from "@/components/education-view";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "آموزش" };
 
-export default function EducationPage() {
+export default async function EducationPage() {
+  const { trackStats } = await getData();
   const learners = trackStats.reduce((s, t) => s + t.learners, 0);
   return (
     <div className="flex flex-col gap-6">

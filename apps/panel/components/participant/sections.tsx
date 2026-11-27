@@ -1,6 +1,6 @@
 "use client";
 
-import { courseStatusLabel, me, myCourses, myDocuments, myPayments, myWallet, openCoursesForMe, provinceById, trackLabel, type Course } from "@varzino/demo-data";
+import { courseStatusLabel, trackLabel, type Course } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
@@ -13,10 +13,12 @@ import { daysFromNow, formatDate, formatNumber, formatPercent, formatToman } fro
 import { Download, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useData } from "@/components/data-provider";
 
 /* ---------------- Courses ---------------- */
 
 export function MyCoursesView() {
+  const { myCourses, openCoursesForMe } = useData();
   const [enrolled, setEnrolled] = useState<string[]>([]);
   return (
     <div className="flex flex-col gap-4">
@@ -92,6 +94,7 @@ export function MyCoursesView() {
 /* ---------------- Membership card ---------------- */
 
 export function MyCardView() {
+  const { disciplineName, me, myDocuments, profile, provinceById } = useData();
   const [renewed, setRenewed] = useState(false);
   const [insurance, setInsurance] = useState(false);
   const province = provinceById[me.provinceId];
@@ -101,12 +104,13 @@ export function MyCardView() {
         <CardBody className="flex flex-col items-center gap-4">
           <MembershipCard
             title="کارت عضویت ورزشکار"
+            federation={profile.name}
             name={me.fullName}
             code={me.code}
             validUntil={daysFromNow(renewed ? 683 : 318)}
             rows={[
               { label: "استان", value: province?.name ?? "" },
-              { label: "کمربند", value: me.belt },
+              { label: "رشته", value: disciplineName(me.disciplineId) },
             ]}
           />
           <div className="grid w-full grid-cols-2 gap-2">
@@ -191,6 +195,7 @@ export function MyCardView() {
 /* ---------------- Payments ---------------- */
 
 export function MyPaymentsView() {
+  const { myPayments, myWallet } = useData();
   const [balance, setBalance] = useState(myWallet.balance);
   return (
     <div className="flex flex-col gap-4">
@@ -273,6 +278,7 @@ export function MyPaymentsView() {
 /* ---------------- Profile edit ---------------- */
 
 export function ProfileEdit() {
+  const { me } = useData();
   const [phone, setPhone] = useState(me.phone);
   const [address, setAddress] = useState("خیابان آزادی، کوچه ۱۲، پلاک ۸");
   const [emergency, setEmergency] = useState("۰۹۱۲۳۴۵۶۷۸۹");

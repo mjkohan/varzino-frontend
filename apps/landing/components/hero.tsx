@@ -1,4 +1,4 @@
-import { bracketFor, medalTable, people, provinceById } from "@varzino/demo-data";
+import { categoryLabel, getDataset } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { daysFromNow, formatNumber } from "@varzino/utils";
 import { Bracket } from "@varzino/shared/bracket";
@@ -15,8 +15,10 @@ function LiveDot() {
 
 /** Product view: the live national championship as the panel shows it. */
 function LiveCompetitionView() {
-  const rounds = bracketFor("c-1");
-  const athlete = people.find((p) => p.role === "athlete" && p.gender === "male" && p.ageGroup === "بزرگسالان") ?? people[0]!;
+  // The landing page shows the para federation's live championship.
+  const { bracketFor, competitionById, disciplineName, me: athlete, medalTable, profile, provinceById } = getDataset("para");
+  const live = competitionById["c-1"]!;
+  const rounds = bracketFor(live.id);
   return (
     <div className="relative">
       <div className="overflow-hidden rounded-panel border border-hairline bg-surface shadow-float">
@@ -24,10 +26,10 @@ function LiveCompetitionView() {
         <div className="flex items-center justify-between gap-3 border-b border-hairline bg-raised/60 px-4 py-2.5">
           <div className="flex items-center gap-2 text-sm">
             <LiveDot />
-            <span className="font-medium">قهرمانی کشور بزرگسالان</span>
-            <span className="hidden text-fg-muted sm:inline">روز دوم، سالن ۱۲ هزار نفری آزادی</span>
+            <span className="font-medium">{live.title}</span>
+            <span className="hidden text-fg-muted sm:inline">روز دوم، {live.venue}</span>
           </div>
-          <span className="text-xs text-fg-muted">وزن تا ۶۸ کیلوگرم</span>
+          <span className="text-xs text-fg-muted">{categoryLabel(athlete.category)}</span>
         </div>
 
         <div className="grid gap-0 lg:grid-cols-[1fr_200px]">
@@ -56,12 +58,13 @@ function LiveCompetitionView() {
       <div className="pointer-events-none absolute -bottom-20 end-4 hidden w-[300px] -rotate-3 sm:block md:end-[-40px] lg:w-[320px]">
         <MembershipCard
           title="کارت عضویت ورزشکار"
+          federation={profile.name}
           name={athlete.fullName}
           code={athlete.code}
           validUntil={daysFromNow(318)}
           rows={[
             { label: "استان", value: provinceById[athlete.provinceId]?.name ?? "" },
-            { label: "کمربند", value: athlete.belt },
+            { label: "رشته", value: disciplineName(athlete.disciplineId) },
           ]}
         />
       </div>
@@ -84,7 +87,7 @@ export function Hero() {
           </p>
           <div className="enter-3 mt-8 flex flex-wrap items-center gap-3">
             <Button asChild size="xl">
-              <a href={panelLoginUrl}>ورود به نسخه نمایشی</a>
+              <a href={panelLoginUrl}>ورود به سامانه</a>
             </Button>
             <Button asChild size="xl" variant="secondary">
               <a href="#contact">درخواست جلسه معرفی</a>

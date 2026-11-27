@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: "پنل ورزینو",
     template: "%s | پنل ورزینو",
   },
-  description: "پنل نمایشی ورزینو برای فدراسیون‌ها، هیئت‌های استانی و باشگاه‌ها",
+  description: "سامانه یکپارچه مدیریت فدراسیون‌ها، هیئت‌های استانی و باشگاه‌ها",
   robots: { index: false, follow: false },
 };
 

@@ -1,4 +1,4 @@
-import { nationalTotals, rankingFor, registrationTrend, weightLabel } from "@varzino/demo-data";
+import { categoryLabel, getDataset } from "@varzino/demo-data";
 import { Legend, TrendChart } from "@varzino/ui/charts/charts";
 import { cn } from "@varzino/ui/lib/cn";
 import { formatNumber } from "@varzino/utils";
@@ -49,7 +49,7 @@ const before: { icon: ReactNode; text: string }[] = [
 
 const after: string[] = [
   "هر ورزشکار یک کد عضویت و یک پرونده در سراسر کشور دارد",
-  "ثبت‌نام، پرداخت ورودیه و وزن‌کشی در خود سامانه انجام می‌شود",
+  "ثبت‌نام، پرداخت ورودیه و پذیرش ورزشکاران در خود سامانه انجام می‌شود",
   "درخواست کارت از هیئت به فدراسیون می‌رود و همان‌جا صادر می‌شود",
   "هر نتیجه طبق آیین‌نامه، خودکار به امتیاز رنکینگ تبدیل می‌شود",
 ];
@@ -94,14 +94,15 @@ export function BeforeAfter() {
 /* ---------- Data showcase (inverse band) ---------- */
 
 export function Showcase() {
-  const ranking = rankingFor("male").slice(0, 6);
+  const { disciplineName, nationalTotals, profile, rankingFor, registrationTrend } = getDataset("para");
+  const ranking = rankingFor("male", undefined, profile.bracketDisciplineId).slice(0, 6);
   return (
     <section className="bg-inverse py-24 text-on-inverse md:py-32">
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
         <SectionHeading
           inverse
           title="داده‌ای که هر روز با آن تصمیم می‌گیرید"
-          lead="نمودارها و جدول‌های زیر همان چیزی است که در پنل می‌بینید، با داده نمایشی یک فدراسیون."
+          lead="نمودارها و جدول‌های زیر همان چیزی است که در پنل می‌بینید."
         />
         <div className="mt-12 grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div className="rounded-panel bg-surface p-5 text-fg md:p-6">
@@ -131,14 +132,14 @@ export function Showcase() {
             />
           </div>
           <div className="rounded-panel bg-surface p-5 text-fg md:p-6">
-            <p className="font-medium">رنکینگ کشوری بزرگسالان مردان</p>
+            <p className="font-medium">رنکینگ کشوری {disciplineName(profile.bracketDisciplineId)}، بزرگسالان مردان</p>
             <p className="mt-0.5 text-sm text-fg-muted">به‌روز شده پس از هر مسابقه رسمی</p>
             <ol className="mt-5 flex flex-col">
               {ranking.map((r) => (
                 <li key={r.person.id} className="flex h-12 items-center gap-3 border-b border-hairline text-sm last:border-b-0">
                   <span className="tabular w-5 text-fg-muted">{formatNumber(r.rank)}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{r.person.fullName}</span>
-                  <span className="text-xs text-fg-muted">{weightLabel(r.person.weightClass)}</span>
+                  <span className="text-xs text-fg-muted">{categoryLabel(r.person.category)}</span>
                   <span className="tabular w-12 text-end text-fg-secondary">{formatNumber(r.points)}</span>
                 </li>
               ))}
@@ -281,7 +282,7 @@ export function Footer() {
           <Logo inverse />
           <p className="mt-3 max-w-sm text-sm leading-7 text-on-inverse-muted">سامانه یکپارچه مدیریت فدراسیون‌ها، هیئت‌های استانی و باشگاه‌های ورزشی</p>
         </div>
-        <p className="text-sm text-on-inverse-muted">نسخه نمایشی فاز اول، همه داده‌ها ساختگی است</p>
+        <p className="text-sm text-on-inverse-muted">© ۱۴۰۵ ورزینو، همه حقوق محفوظ است</p>
       </div>
     </footer>
   );

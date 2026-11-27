@@ -1,15 +1,4 @@
-import {
-  clubById,
-  levelLabel,
-  me,
-  myNotifications,
-  myRegistrations,
-  myRegistrationStatusLabel,
-  openForMe,
-  provinceById,
-  rankingFor,
-  weightLabel,
-} from "@varzino/demo-data";
+import { categoryLabel, levelLabel } from "@varzino/demo-data";
 import { Dot, StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
@@ -20,13 +9,15 @@ import { daysFromNow, formatDate, formatNumber, formatRelative } from "@varzino/
 import { ArrowLeft, CircleAlert, CircleCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "خانه" };
 
-export default function ParticipantHome() {
+export default async function ParticipantHome() {
+  const { clubById, disciplineName, me, myNotifications, profile, myRegistrationStatusLabel, myRegistrations, openForMe, provinceById, rankingFor } = await getData();
   const club = clubById[me.clubId];
   const province = provinceById[me.provinceId];
-  const ranking = rankingFor(me.gender, me.weightClass);
+  const ranking = rankingFor(me.gender, me.category, me.disciplineId);
   const myRank = ranking.find((r) => r.person.id === me.id);
   const today = myRegistrations.find((r) => r.status === "weighed");
   const upcoming = myRegistrations.filter((r) => r.status === "registered" || r.status === "pending-payment");
@@ -34,7 +25,7 @@ export default function ParticipantHome() {
   const checks = [
     { label: "عضویت ۱۴۰۵", ok: true, detail: "معتبر تا ۱۵ مهر ۱۴۰۶" },
     { label: "بیمه ورزشی", ok: false, detail: "۴۵ روز تا انقضا", href: "/me/card", action: "تمدید" },
-    { label: "معاینه پزشکی", ok: true, detail: "بلامانع، ۲ ماه پیش" },
+    { label: profile.impairments ? "کلاس‌بندی پزشکی" : "معاینه پزشکی", ok: true, detail: profile.impairments ? `کلاس ${me.category ?? ""} تأیید شده، ۲ ماه پیش` : "بلامانع، ۲ ماه پیش" },
     { label: "مدارک هویتی", ok: true, detail: "تأیید شده" },
   ];
 
@@ -50,7 +41,7 @@ export default function ParticipantHome() {
             <span aria-hidden>،</span>
             <span>{province?.name}</span>
             <span aria-hidden>،</span>
-            <span>{weightLabel(me.weightClass)}</span>
+            <span>{disciplineName(me.disciplineId)}، {categoryLabel(me.category)}</span>
           </div>
         </div>
       </div>
@@ -61,10 +52,10 @@ export default function ParticipantHome() {
             <Card className="border-accent/30">
               <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-accent-ink">مبارزه بعدی شما، امروز</p>
+                  <p className="text-sm text-accent-ink">نوبت بعدی شما، امروز</p>
                   <p className="mt-1 text-lg font-medium text-fg">{today.competition.title}</p>
                   <p className="text-sm text-fg-secondary">
-                    ساعت ۱۱:۰۰، زمین ۳، {today.competition.venue}
+                    ساعت ۱۱:۰۰، {profile.copy.myStation.join(" ")}، {today.competition.venue}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-6 rounded-card bg-raised px-5 py-3 text-center">
@@ -73,8 +64,8 @@ export default function ParticipantHome() {
                     <p className="text-xs text-fg-muted">شروع</p>
                   </div>
                   <div>
-                    <p className="tabular text-xl font-medium text-fg">۳</p>
-                    <p className="text-xs text-fg-muted">زمین</p>
+                    <p className="tabular text-xl font-medium text-fg">{profile.copy.myStation[1]}</p>
+                    <p className="text-xs text-fg-muted">{profile.copy.myStation[0]}</p>
                   </div>
                   <div>
                     <p className="text-xl font-medium text-fg">یک‌چهارم</p>
@@ -110,7 +101,7 @@ export default function ParticipantHome() {
           </Card>
 
           <Card>
-            <CardHeader title="ثبت‌نام باز برای شما" description="بر اساس بخش، رده سنی و وزن شما" />
+            <CardHeader title="ثبت‌نام باز برای شما" description="بر اساس رشته، رده سنی و رده مسابقه شما" />
             <ul className="mt-2 flex flex-col px-5 pb-3">
               {openForMe.slice(0, 3).map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-3 border-b border-hairline py-3 last:border-b-0">
@@ -150,12 +141,13 @@ export default function ParticipantHome() {
             <CardBody className="flex flex-col items-center gap-4">
               <MembershipCard
                 title="کارت عضویت ورزشکار"
+                federation={profile.name}
                 name={me.fullName}
                 code={me.code}
                 validUntil={daysFromNow(318)}
                 rows={[
                   { label: "استان", value: province?.name ?? "" },
-                  { label: "کمربند", value: me.belt },
+                  { label: "رشته", value: disciplineName(me.disciplineId) },
                 ]}
               />
             </CardBody>
@@ -186,7 +178,7 @@ export default function ParticipantHome() {
           </Card>
 
           <Card>
-            <CardHeader title="رنکینگ من" description={`بزرگسالان، ${weightLabel(me.weightClass)}`} />
+            <CardHeader title="رنکینگ من" description={`${disciplineName(me.disciplineId)}، ${categoryLabel(me.category)}`} />
             <CardBody className="flex items-center justify-between gap-4">
               <div className="flex gap-8">
                 <div>

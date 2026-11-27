@@ -1,14 +1,15 @@
-import { licensesIssuedTrend, stageDurations } from "@varzino/demo-data";
 import { ColumnChart } from "@varzino/ui/charts/charts";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
 import { BarList, PageHeader, Stat } from "@varzino/ui/components/data-display";
 import { formatNumber } from "@varzino/utils";
 import type { Metadata } from "next";
 import { LicensesView } from "@/components/licenses-view";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "مجوزها و کارت‌ها" };
 
-export default function LicensesPage() {
+export default async function LicensesPage() {
+  const { licensesIssuedTrend, stageDurations } = await getData();
   const monthly = licensesIssuedTrend.map((m) => ({ label: m.month, value: m.club + m.coach + m.referee + m.athlete }));
   const last = licensesIssuedTrend[licensesIssuedTrend.length - 1]!;
   return (

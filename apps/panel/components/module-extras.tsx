@@ -1,6 +1,6 @@
 "use client";
 
-import { conversations, permissionMatrix } from "@varzino/demo-data";
+import { permissionMatrix } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardHeader } from "@varzino/ui/components/card";
 import { Avatar } from "@varzino/ui/components/misc";
@@ -8,6 +8,7 @@ import { cn } from "@varzino/ui/lib/cn";
 import { Check, Send } from "lucide-react";
 import { useState, type SyntheticEvent } from "react";
 import { toast } from "sonner";
+import { useData } from "@/components/data-provider";
 
 /** Users module: roles × permissions, toggled per cell. */
 export function RoleMatrix() {
@@ -87,6 +88,7 @@ type Msg = { from: string; text: string; time: string; mine: boolean };
 
 /** Messaging module: internal messenger between federation units. */
 export function Messenger() {
+  const { conversations } = useData();
   const [threads, setThreads] = useState(conversations.map((c) => ({ ...c, messages: [...c.messages] as Msg[] })));
   const [activeId, setActiveId] = useState(threads[0]!.id);
   const [draft, setDraft] = useState("");

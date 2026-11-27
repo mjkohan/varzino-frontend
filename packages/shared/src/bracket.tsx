@@ -1,4 +1,4 @@
-import { provinceById, roundLabel, type BracketMatch } from "@varzino/demo-data";
+import { provinceNames, roundLabel, type BracketMatch } from "@varzino/demo-data";
 import { cn } from "@varzino/ui/lib/cn";
 import { formatNumber, toPersianDigits } from "@varzino/utils";
 
@@ -9,7 +9,7 @@ function Side({ side, won, decided, compact }: { side: BracketMatch["a"]; won: b
       {won ? <span aria-hidden className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-accent" /> : null}
       <span className="tabular w-4 shrink-0 text-xs text-fg-muted">{side.seed ? formatNumber(side.seed) : ""}</span>
       <span className={cn("min-w-0 flex-1 truncate", won && "font-medium text-fg")}>{side.person.fullName}</span>
-      <span className={cn("hidden shrink-0 text-xs text-fg-muted", !compact && "sm:inline")}>{provinceById[side.person.provinceId]?.name}</span>
+      <span className={cn("hidden shrink-0 text-xs text-fg-muted", !compact && "sm:inline")}>{provinceNames[side.person.provinceId]}</span>
       <span className={cn("tabular w-6 shrink-0 text-end", won ? "font-semibold text-fg" : "text-fg-muted")}>
         {side.score === undefined ? "–" : formatNumber(side.score)}
       </span>

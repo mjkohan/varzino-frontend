@@ -3,6 +3,7 @@
  * Each workspace is a list of records with a status, an optional approval workflow,
  * a detail panel and a "create" form. Rendered by apps/panel/components/workspace.tsx.
  */
+import type { FederationProfile } from "./federations";
 import type { Tone } from "./overviews";
 
 export type ColumnKind = "title" | "text" | "code" | "person" | "progress" | "muted";
@@ -67,7 +68,12 @@ const r = (id: string, cells: Record<string, string>, status: string, stage?: nu
 const PROVINCES = ["تهران", "اصفهان", "خراسان رضوی", "فارس", "خوزستان", "آذربایجان شرقی", "مازندران", "البرز", "کرمان", "گیلان", "یزد", "قم"];
 const COMMITTEES = ["کمیته فنی و تیم‌های ملی", "کمیته مسابقات", "کمیته داوران", "کمیته آموزش", "کمیته پزشکی", "کمیته انضباطی", "کمیته توسعه بانوان"];
 
-export const workspaces: Record<string, Workspace> = {
+export function buildWorkspaces(p: FederationProfile): Record<string, Workspace> {
+  const c = p.copy;
+  const B = p.boardName;
+  const T = c.leagueTeams;
+  const V = c.venues;
+  return {
   /* ------------------------------------------------------------------ */
   users: {
     entity: "کاربر",
@@ -104,20 +110,20 @@ export const workspaces: Record<string, Workspace> = {
       fields: [
         { key: "name", label: "نام و نام خانوادگی", type: "text", required: true },
         { key: "mobile", label: "شماره همراه", type: "text", required: true, ltr: true, placeholder: "۰۹۱۲۱۲۳۴۵۶۷" },
-        { key: "unit", label: "واحد", type: "select", options: ["دبیرخانه فدراسیون", "کمیته مسابقات", "کمیته داوران", "هیئت تکواندو تهران", "هیئت تکواندو اصفهان", "باشگاه پیشگامان"] },
+        { key: "unit", label: "واحد", type: "select", options: ["دبیرخانه فدراسیون", "کمیته مسابقات", "کمیته داوران", B("تهران"), B("اصفهان"), "باشگاه پیشگامان"] },
         { key: "role", label: "نقش", type: "select", options: ["کارشناس فدراسیون", "کارشناس هیئت", "کارشناس مسابقات", "کارشناس مالی", "مدیر باشگاه", "بازرس"] },
         { key: "scope", label: "دامنه دسترسی", type: "select", options: ["سراسر کشور", "استان تهران", "استان اصفهان", "فقط باشگاه خود"] },
       ],
     },
     records: [
-      r("u1", { name: "سمانه رضایی", unit: "هیئت تکواندو گیلان", role: "کارشناس مسابقات", scope: "استان گیلان", last: "—" }, "requested", 0, [["شماره همراه", "۰۹۱۱۲۳۴۸۸۷۱"], ["درخواست‌کننده", "رئیس هیئت گیلان"]]),
+      r("u1", { name: "سمانه رضایی", unit: B("گیلان"), role: "کارشناس مسابقات", scope: "استان گیلان", last: "—" }, "requested", 0, [["شماره همراه", "۰۹۱۱۲۳۴۸۸۷۱"], ["درخواست‌کننده", "رئیس هیئت گیلان"]]),
       r("u2", { name: "مرتضی بابایی", unit: "باشگاه آرش", role: "مدیر باشگاه", scope: "باشگاه آرش", last: "—" }, "review", 1, [["شماره همراه", "۰۹۱۳۶۶۲۱۰۴۵"], ["مدارک", "حکم مدیریت باشگاه، بارگذاری شده"]]),
-      r("u3", { name: "یاسین کرمانی", unit: "هیئت تکواندو یزد", role: "کارشناس مالی", scope: "استان یزد", last: "—" }, "review", 2, [["شماره همراه", "۰۹۱۳۴۱۸۷۷۲۰"]]),
+      r("u3", { name: "یاسین کرمانی", unit: B("یزد"), role: "کارشناس مالی", scope: "استان یزد", last: "—" }, "review", 2, [["شماره همراه", "۰۹۱۳۴۱۸۷۷۲۰"]]),
       r("u4", { name: "کیان احمدی", unit: "کمیته داوران", role: "ناظر داوری", scope: "سراسر کشور", last: "امروز، ۰۸:۴۱" }, "active", 3, [["ورود دومرحله‌ای", "فعال"], ["تعداد ورود در ۳۰ روز", "۴۲"]]),
       r("u5", { name: "آیدا ملکی", unit: "دبیرخانه فدراسیون", role: "مسئول دبیرخانه", scope: "سراسر کشور", last: "دیروز، ۱۶:۱۰" }, "active", 3, [["ورود دومرحله‌ای", "فعال"]]),
-      r("u6", { name: "سارا کریمی", unit: "هیئت تکواندو اصفهان", role: "رئیس هیئت", scope: "استان اصفهان", last: "امروز، ۰۹:۰۲" }, "active", 3),
+      r("u6", { name: "سارا کریمی", unit: B("اصفهان"), role: "رئیس هیئت", scope: "استان اصفهان", last: "امروز، ۰۹:۰۲" }, "active", 3),
       r("u7", { name: "بهنام عباسی", unit: "باشگاه پیشگامان", role: "مدیر باشگاه", scope: "باشگاه پیشگامان", last: "۳ روز پیش" }, "active", 3),
-      r("u8", { name: "داوود قنبری", unit: "هیئت تکواندو قم", role: "کارشناس هیئت", scope: "استان قم", last: "۹۴ روز پیش" }, "disabled", 3, [["دلیل", "بیش از ۹۰ روز بدون ورود"]]),
+      r("u8", { name: "داوود قنبری", unit: B("قم"), role: "کارشناس هیئت", scope: "استان قم", last: "۹۴ روز پیش" }, "disabled", 3, [["دلیل", "بیش از ۹۰ روز بدون ورود"]]),
     ],
   },
 
@@ -155,18 +161,18 @@ export const workspaces: Record<string, Workspace> = {
       fields: [
         { key: "kind", label: "نوع", type: "select", options: ["نامه صادره", "نامه وارده", "بخشنامه", "قرارداد"] },
         { key: "subject", label: "موضوع", type: "text", required: true },
-        { key: "party", label: "گیرنده", type: "select", options: ["همه هیئت‌های استانی", "هیئت تکواندو تهران", "کمیته فنی و تیم‌های ملی", "وزارت ورزش و جوانان", "کمیته ملی المپیک"] },
+        { key: "party", label: "گیرنده", type: "select", options: ["همه هیئت‌های استانی", B("تهران"), "کمیته فنی و تیم‌های ملی", "وزارت ورزش و جوانان", "کمیته ملی المپیک"] },
         { key: "body", label: "متن نامه", type: "textarea", required: true },
       ],
     },
     records: [
-      r("d1", { number: "۱۴۰۵/ص/۸۸۲۴", subject: "دعوت به اردوی آماده‌سازی قهرمانی آسیا", kind: "نامه صادره", party: "به ۱۸ ورزشکار و باشگاه‌ها", date: "۲ آذر" }, "sign", 2, [["پیوست", "فهرست دعوت‌شدگان، ۱ فایل"], ["امضاکننده", "دبیر کل فدراسیون"]]),
-      r("d2", { number: "۱۴۰۵/و/۳۱۰۴", subject: "درخواست میزبانی قهرمانی کشور نوجوانان", kind: "نامه وارده", party: "از هیئت تکواندو یزد", date: "۱ آذر" }, "routing", 1, [["ارجاع به", "کمیته مسابقات"], ["مهلت پاسخ", "۸ آذر"]]),
-      r("d3", { number: "۱۴۰۵/ق/۰۹۳", subject: "قرارداد اجاره سالن ۱۲ هزار نفری آزادی", kind: "قرارداد", party: "مجموعه ورزشی آزادی", date: "۳۰ آبان" }, "sign", 2, [["مبلغ", "۸۵۰ میلیون تومان"], ["مدت", "۳ روز"]]),
+      r("d1", { number: "۱۴۰۵/ص/۸۸۲۴", subject: `دعوت به اردوی آماده‌سازی ${c.majorEvent}`, kind: "نامه صادره", party: "به ۱۸ ورزشکار و باشگاه‌ها", date: "۲ آذر" }, "sign", 2, [["پیوست", "فهرست دعوت‌شدگان، ۱ فایل"], ["امضاکننده", "دبیر کل فدراسیون"]]),
+      r("d2", { number: "۱۴۰۵/و/۳۱۰۴", subject: "درخواست میزبانی قهرمانی کشور نوجوانان", kind: "نامه وارده", party: `از ${B("یزد")}`, date: "۱ آذر" }, "routing", 1, [["ارجاع به", "کمیته مسابقات"], ["مهلت پاسخ", "۸ آذر"]]),
+      r("d3", { number: "۱۴۰۵/ق/۰۹۳", subject: `قرارداد اجاره ${V[0]!.name}`, kind: "قرارداد", party: "مدیریت سالن", date: "۳۰ آبان" }, "sign", 2, [["مبلغ", "۸۵۰ میلیون تومان"], ["مدت", "۳ روز"]]),
       r("d4", { number: "۱۴۰۵/ب/۰۴۱", subject: "ابلاغ آیین‌نامه جدید امتیازدهی رنکینگ", kind: "بخشنامه", party: "به همه هیئت‌های استانی", date: "۲۸ آبان" }, "sent", 3, [["خوانده‌شده", "۳۱ از ۳۱ هیئت"]]),
-      r("d5", { number: "۱۴۰۵/و/۳۰۹۸", subject: "گزارش حادثه در مسابقه استانی", kind: "نامه وارده", party: "از هیئت تکواندو لرستان", date: "۲۷ آبان" }, "routing", 1, [["ارجاع به", "کمیته پزشکی"]]),
+      r("d5", { number: "۱۴۰۵/و/۳۰۹۸", subject: "گزارش حادثه در مسابقه استانی", kind: "نامه وارده", party: `از ${B("لرستان")}`, date: "۲۷ آبان" }, "routing", 1, [["ارجاع به", "کمیته پزشکی"]]),
       r("d6", { number: "۱۴۰۵/ص/پیش‌نویس", subject: "پاسخ به استعلام بیمه ورزشی", kind: "نامه صادره", party: "به صندوق بیمه ورزشی", date: "امروز" }, "draft", 0),
-      r("d7", { number: "۱۴۰۵/ق/۰۹۱", subject: "قرارداد حمایت مالی لیگ برتر", kind: "قرارداد", party: "شرکت حامی لیگ", date: "۲۰ آبان" }, "sent", 3, [["مبلغ", "۱۲ میلیارد تومان"], ["امضا", "دیجیتال، دو طرف"]]),
+      r("d7", { number: "۱۴۰۵/ق/۰۹۱", subject: `قرارداد حمایت مالی ${c.leagueName}`, kind: "قرارداد", party: c.sponsorDeal, date: "۲۰ آبان" }, "sent", 3, [["مبلغ", "۱۲ میلیارد تومان"], ["امضا", "دیجیتال، دو طرف"]]),
     ],
   },
 
@@ -207,8 +213,8 @@ export const workspaces: Record<string, Workspace> = {
       ],
     },
     records: [
-      r("m1", { title: "مهلت ثبت‌نام انتخابی جوانان بانوان", audience: "مربیان و باشگاه‌های بانوان", channel: "اعلان + پیامک", date: "۲ آذر", read: "۷۹" }, "sent", 2, [["تحویل‌شده", "۱٬۲۴۰ از ۱٬۲۶۲"]]),
-      r("m2", { title: "تغییر زمان وزن‌کشی قهرمانی کشور", audience: "تیم‌های اعزامی", channel: "پیامک", date: "۱ آذر", read: "۹۶" }, "sent", 2),
+      r("m1", { title: "مهلت ثبت‌نام انتخابی تیم ملی بانوان", audience: "مربیان و باشگاه‌های بانوان", channel: "اعلان + پیامک", date: "۲ آذر", read: "۷۹" }, "sent", 2, [["تحویل‌شده", "۱٬۲۴۰ از ۱٬۲۶۲"]]),
+      r("m2", { title: `تغییر زمان ${p.checkIn} قهرمانی کشور`, audience: "تیم‌های اعزامی", channel: "پیامک", date: "۱ آذر", read: "۹۶" }, "sent", 2),
       r("m3", { title: "فراخوان دوره داوری درجه ۲", audience: "داوران درجه ۳", channel: "اعلان", date: "۲۹ آبان", read: "۵۴" }, "sent", 2, [["هنوز ندیده‌اند", "۱۴۲ داور"]]),
       r("m4", { title: "یادآوری تمدید بیمه ورزشی", audience: "ورزشکاران با بیمه رو به انقضا", channel: "پیامک", date: "۵ آذر، ۰۹:۰۰", read: "0" }, "scheduled", 1),
       r("m5", { title: "برنامه همایش ملی مربیان", audience: "مربیان دارای کارت", channel: "پیام داخلی", date: "—", read: "0" }, "draft", 0),
@@ -270,7 +276,7 @@ export const workspaces: Record<string, Workspace> = {
       { key: "name", label: "سالن", kind: "title" },
       { key: "city", label: "شهر" },
       { key: "capacity", label: "ظرفیت تماشاگر", kind: "muted" },
-      { key: "mats", label: "زمین", kind: "muted" },
+      { key: "mats", label: c.unitLabel, kind: "muted" },
       { key: "booking", label: "رزرو بعدی", kind: "muted" },
     ],
     statuses: {
@@ -294,19 +300,19 @@ export const workspaces: Record<string, Workspace> = {
       success: "درخواست رزرو برای مدیر سالن ارسال شد",
       status: "request",
       fields: [
-        { key: "name", label: "سالن", type: "select", options: ["خانه تکواندو", "سالن پیروزی", "سالن امام رضا", "سالن غدیر", "سالن حافظیه"] },
+        { key: "name", label: "سالن", type: "select", options: V.map((v) => v.name) },
         { key: "city", label: "شهر", type: "select", options: ["تهران", "اصفهان", "مشهد", "تبریز", "شیراز"] },
         { key: "booking", label: "برای", type: "text", required: true, placeholder: "مثلاً اردوی تیم ملی نوجوانان" },
         { key: "date", label: "تاریخ", type: "text", ltr: true, placeholder: "۱۴۰۵/۱۰/۰۱" },
       ],
     },
     records: [
-      r("v1", { name: "سالن ۱۲ هزار نفری آزادی", city: "تهران", capacity: "۱۲٬۰۰۰", mats: "۴", booking: "قهرمانی کشور، تا ۳ آذر" }, "booked", 2, [["گواهی ایمنی", "معتبر تا اسفند ۱۴۰۵"], ["سیستم امتیازدهی الکترونیک", "دارد"], ["پارکینگ", "۸۰۰ خودرو"]]),
-      r("v2", { name: "خانه تکواندو", city: "تهران", capacity: "۸۰۰", mats: "۳", booking: "اردوی تیم ملی، از ۲۰ آبان" }, "booked", 2, [["گواهی ایمنی", "معتبر"]]),
-      r("v3", { name: "سالن پیروزی", city: "اصفهان", capacity: "۲٬۵۰۰", mats: "۲", booking: "لیگ برتر هفته نهم" }, "request", 1, [["درخواست‌کننده", "کمیته مسابقات"]]),
-      r("v4", { name: "سالن امام رضا", city: "مشهد", capacity: "۳٬۰۰۰", mats: "۴", booking: "—" }, "service", undefined, [["سرویس", "تعویض ۲۴ دست تشک"], ["پایان سرویس", "۱۲ آذر"]]),
-      r("v5", { name: "سالن غدیر", city: "تبریز", capacity: "۲٬۲۰۰", mats: "۲", booking: "پومسه قهرمانی کشور" }, "request", 0),
-      r("v6", { name: "سالن حافظیه", city: "شیراز", capacity: "۱٬۸۰۰", mats: "۲", booking: "—" }, "ready", undefined, [["گواهی ایمنی", "معتبر تا تیر ۱۴۰۶"]]),
+      r("v1", { name: V[0]!.name, city: V[0]!.city, capacity: V[0]!.capacity, mats: V[0]!.units, booking: `${p.competitions[0]!.title}، تا ۳ آذر` }, "booked", 2, [["گواهی ایمنی", "معتبر تا اسفند ۱۴۰۵"], [c.scoringSystem, "دارد"], ["پارکینگ", "۸۰۰ خودرو"]]),
+      r("v2", { name: V[1]!.name, city: V[1]!.city, capacity: V[1]!.capacity, mats: V[1]!.units, booking: "اردوی تیم ملی، از ۲۰ آبان" }, "booked", 2, [["گواهی ایمنی", "معتبر"]]),
+      r("v3", { name: V[2]!.name, city: V[2]!.city, capacity: V[2]!.capacity, mats: V[2]!.units, booking: `${c.leagueName}، هفته نهم` }, "request", 1, [["درخواست‌کننده", "کمیته مسابقات"]]),
+      r("v4", { name: V[3]!.name, city: V[3]!.city, capacity: V[3]!.capacity, mats: V[3]!.units, booking: "—" }, "service", undefined, [["سرویس", c.venueServiceNote], ["پایان سرویس", "۱۲ آذر"]]),
+      r("v5", { name: V[4]!.name, city: V[4]!.city, capacity: V[4]!.capacity, mats: V[4]!.units, booking: p.competitions[11]!.title }, "request", 0),
+      r("v6", { name: V[5]!.name, city: V[5]!.city, capacity: V[5]!.capacity, mats: V[5]!.units, booking: "—" }, "ready", undefined, [["گواهی ایمنی", "معتبر تا تیر ۱۴۰۶"]]),
     ],
   },
 
@@ -342,18 +348,18 @@ export const workspaces: Record<string, Workspace> = {
       status: "planned",
       fields: [
         { key: "title", label: "عنوان", type: "text", required: true },
-        { key: "team", label: "تیم", type: "select", options: ["ملی بزرگسالان مردان", "ملی بزرگسالان بانوان", "ملی جوانان", "ملی نوجوانان", "پومسه"] },
+        { key: "team", label: "تیم", type: "select", options: c.teams },
         { key: "place", label: "محل", type: "text", required: true },
         { key: "dates", label: "زمان", type: "text", placeholder: "۱ تا ۱۰ دی" },
         { key: "members", label: "تعداد نفرات", type: "number" },
       ],
     },
     records: [
-      r("c1", { title: "آماده‌سازی قهرمانی آسیا", team: "ملی بزرگسالان مردان", place: "مرکز ملی المپیک", dates: "۲۰ آبان تا ۱۵ آذر", members: "۲۴" }, "running", 3, [["بودجه", "۴٫۶ میلیارد تومان"], ["هزینه‌شده", "۳٫۱ میلیارد تومان"], ["سرمربی", "نیما رستمی"]]),
-      r("c2", { title: "انتخابی جوانان بانوان", team: "ملی جوانان", place: "خانه تکواندو بانوان", dates: "۵ تا ۱۹ آذر", members: "۱۸" }, "running", 3),
-      r("c3", { title: "اعزام به گرندپری", team: "ملی بزرگسالان", place: "خارج از کشور", dates: "۲۲ آذر", members: "۱۰" }, "invited", 2, [["روادید", "۸ از ۱۰ صادر شد"], ["بلیت", "رزرو شده"]], "روادید دو نفر هنوز صادر نشده است. ۱۹ روز تا اعزام."),
-      r("c4", { title: "اردوی استعدادهای برتر", team: "ملی نوجوانان", place: "مشهد", dates: "۱ تا ۱۰ دی", members: "۳۰" }, "planned", 0),
-      r("c5", { title: "اردوی پومسه پیش از جهانی", team: "پومسه", place: "تهران", dates: "۱ تا ۲۰ مهر", members: "۱۴" }, "done", 4, [["گزارش فنی", "ثبت شده"], ["هزینه نهایی", "۱٫۹ میلیارد تومان"]]),
+      r("c1", { ...c.camps[0]! }, "running", 3, [["بودجه", "۴٫۶ میلیارد تومان"], ["هزینه‌شده", "۳٫۱ میلیارد تومان"], ["سرمربی", "نیما رستمی"]]),
+      r("c2", { ...c.camps[1]! }, "running", 3),
+      r("c3", { ...c.camps[2]! }, "invited", 2, [["روادید", "۸ از ۱۰ صادر شد"], ["بلیت", "رزرو شده"]], "روادید دو نفر هنوز صادر نشده است. ۱۹ روز تا اعزام."),
+      r("c4", { ...c.camps[3]! }, "planned", 0),
+      r("c5", { ...c.camps[4]! }, "done", 4, [["گزارش فنی", "ثبت شده"], ["هزینه نهایی", "۱٫۹ میلیارد تومان"]]),
     ],
   },
 
@@ -395,11 +401,11 @@ export const workspaces: Record<string, Workspace> = {
       ],
     },
     records: [
-      r("ev1", { title: "همایش ملی مربیان تکواندو", type: "همایش", city: "تهران", date: "۱۲ آذر", fill: "96" }, "open", 2, [["ظرفیت", "۵۰۰"], ["ثبت‌نام", "۴۸۰"], ["کارت ورود", "۴۸۰ صادر شد"]]),
-      r("ev2", { title: "جشنواره تکواندو کودکان", type: "جشنواره", city: "اصفهان", date: "۲۶ آذر", fill: "75" }, "open", 1, [["ظرفیت", "۱٬۵۰۰"]]),
-      r("ev3", { title: "نمایشگاه تجهیزات ورزش‌های رزمی", type: "نمایشگاه", city: "تهران", date: "۱۵ دی", fill: "40" }, "open", 1, [["غرفه‌ها", "۲۴ از ۶۰"]]),
-      r("ev4", { title: "سمینار پزشکی ورزشی", type: "سمینار", city: "مشهد", date: "۲۰ دی", fill: "30" }, "design", 0, [["ظرفیت", "۲۰۰"]], "ثبت‌نام کم است. پیشنهاد: اطلاع‌رسانی دوباره به مربیان و پزشکان هیئت‌ها."),
-      r("ev5", { title: "جشن قهرمانان ۱۴۰۴", type: "همایش", city: "تهران", date: "۱۸ مهر", fill: "100" }, "done", 4, [["حضور", "۹۱٪"]]),
+      r("ev1", { ...c.events[0]! }, "open", 2, [["ظرفیت", "۵۰۰"], ["ثبت‌نام", "۴۸۰"], ["کارت ورود", "۴۸۰ صادر شد"]]),
+      r("ev2", { ...c.events[1]! }, "open", 1, [["ظرفیت", "۱٬۵۰۰"]]),
+      r("ev3", { ...c.events[2]! }, "open", 1, [["غرفه‌ها", "۲۴ از ۶۰"]]),
+      r("ev4", { ...c.events[3]! }, "design", 0, [["ظرفیت", "۲۰۰"]], "ثبت‌نام کم است. پیشنهاد: اطلاع‌رسانی دوباره به مربیان و پزشکان هیئت‌ها."),
+      r("ev5", { ...c.events[4]! }, "done", 4, [["حضور", "۹۱٪"]]),
     ],
   },
 
@@ -445,10 +451,10 @@ export const workspaces: Record<string, Workspace> = {
       ],
     },
     records: [
-      r("i1", { number: "ن-۱۴۰۵-۲۱۸", club: "باشگاه ققنوس", province: "تهران", finding: "کف‌پوش غیراستاندارد", deadline: "۱۰ آذر" }, "fixing", 2, [["بازرس", "رضا نجفی"], ["امتیاز چک‌لیست", "۷۱ از ۱۰۰"]]),
+      r("i1", { number: "ن-۱۴۰۵-۲۱۸", club: "باشگاه ققنوس", province: "تهران", finding: c.inspectFinding, deadline: "۱۰ آذر" }, "fixing", 2, [["بازرس", "رضا نجفی"], ["امتیاز چک‌لیست", "۷۱ از ۱۰۰"]]),
       r("i2", { number: "ن-۱۴۰۵-۲۱۴", club: "مجموعه ورزشی پرواز", province: "البرز", finding: "مربی بدون کارت معتبر", deadline: "۵ آذر" }, "open", 1, [["بازرس", "امید طاهری"]], "مربی بدون کارت در کلاس نوجوانان تدریس می‌کرد. مهلت ۳ روزه برای معرفی مربی دارای کارت."),
       r("i3", { number: "ن-۱۴۰۵-۲۰۹", club: "آکادمی پارس", province: "فارس", finding: "نبود جعبه کمک‌های اولیه", deadline: "۱۵ آذر" }, "fixing", 3),
-      r("i4", { number: "ن-۱۴۰۵-۲۰۱", club: "خانه تکواندو نوین", province: "اصفهان", finding: "پروانه منقضی", deadline: "۳ آذر" }, "referred", 2, [["ارجاع", "کمیته انضباطی، ۲ آذر"]]),
+      r("i4", { number: "ن-۱۴۰۵-۲۰۱", club: `${p.clubPrefixes[2]} نوین`, province: "اصفهان", finding: "پروانه منقضی", deadline: "۳ آذر" }, "referred", 2, [["ارجاع", "کمیته انضباطی، ۲ آذر"]]),
       r("i5", { number: "ن-۱۴۰۵-۲۲۵", club: "باشگاه سپهر", province: "مازندران", finding: "—", deadline: "۶ آذر" }, "scheduled", 0, [["بازرس", "مریم سلطانی"]]),
       r("i6", { number: "ن-۱۴۰۵-۱۹۰", club: "باشگاه المپیک", province: "یزد", finding: "تهویه ناکافی", deadline: "۲۰ آبان" }, "closed", 4),
     ],
@@ -537,19 +543,19 @@ export const workspaces: Record<string, Workspace> = {
       status: "club",
       fields: [
         { key: "player", label: "بازیکن", type: "text", required: true },
-        { key: "from", label: "باشگاه مبدأ", type: "select", options: ["آزاد", "باشگاه پیشگامان", "باشگاه ستارگان", "مجموعه ورزشی سپهر", "آکادمی آرش", "باشگاه رستم"] },
-        { key: "to", label: "باشگاه مقصد", type: "select", options: ["باشگاه پیشگامان", "باشگاه ستارگان", "مجموعه ورزشی سپهر", "آکادمی آرش", "باشگاه رستم", "باشگاه فجر"] },
+        { key: "from", label: "باشگاه مبدأ", type: "select", options: ["آزاد", ...T.slice(0, 5)] },
+        { key: "to", label: "باشگاه مقصد", type: "select", options: [...T] },
         { key: "type", label: "نوع", type: "select", options: ["انتقال", "قرارداد جدید", "تمدید", "قرضی"] },
         { key: "amount", label: "مبلغ فصل (تومان)", type: "text", ltr: true },
       ],
     },
     records: [
-      r("l1", { player: "سجاد شریفی", from: "باشگاه رستم", to: "باشگاه پیشگامان", type: "انتقال", amount: "۱٫۲ میلیارد" }, "committee", 2, [["مدت", "دو فصل"], ["سقف بودجه باشگاه مقصد", "۸۲٪ مصرف شده"]]),
-      r("l2", { player: "آرین اصفهانی", from: "آزاد", to: "باشگاه ستارگان", type: "قرارداد جدید", amount: "۸۵۰ میلیون" }, "player", 1),
-      r("l3", { player: "مرتضی تهرانی", from: "باشگاه پیشگامان", to: "باشگاه پیشگامان", type: "تمدید", amount: "۱٫۵ میلیارد" }, "registered", 3),
-      r("l4", { player: "امیر رستمی", from: "مجموعه ورزشی سپهر", to: "باشگاه فجر", type: "قرضی", amount: "۴۰۰ میلیون" }, "committee", 2, [["سقف بودجه باشگاه مقصد", "۱۰۶٪ مصرف شده"]], "باشگاه فجر از سقف بودجه فصل گذشته است. ثبت نهایی نیاز به تصمیم کمیته دارد."),
-      r("l5", { player: "مهران محمدی", from: "باشگاه ستارگان", to: "آکادمی آرش", type: "انتقال", amount: "۹۰۰ میلیون" }, "club", 0),
-      r("l6", { player: "هادی کرمانی", from: "آکادمی آرش", to: "باشگاه رستم", type: "انتقال", amount: "۶۰۰ میلیون" }, "rejected", 2, [["دلیل", "مدارک رضایت‌نامه باشگاه مبدأ ناقص"]]),
+      r("l1", { player: "سجاد شریفی", from: T[4], to: T[0], type: "انتقال", amount: "۱٫۲ میلیارد" }, "committee", 2, [["مدت", "دو فصل"], ["سقف بودجه باشگاه مقصد", "۸۲٪ مصرف شده"]]),
+      r("l2", { player: "آرین اصفهانی", from: "آزاد", to: T[1], type: "قرارداد جدید", amount: "۸۵۰ میلیون" }, "player", 1),
+      r("l3", { player: "مرتضی تهرانی", from: T[0], to: T[0], type: "تمدید", amount: "۱٫۵ میلیارد" }, "registered", 3),
+      r("l4", { player: "امیر رستمی", from: T[2], to: T[5], type: "قرضی", amount: "۴۰۰ میلیون" }, "committee", 2, [["سقف بودجه باشگاه مقصد", "۱۰۶٪ مصرف شده"]], `${T[5]} از سقف بودجه فصل گذشته است. ثبت نهایی نیاز به تصمیم کمیته دارد.`),
+      r("l5", { player: "مهران محمدی", from: T[1], to: T[3], type: "انتقال", amount: "۹۰۰ میلیون" }, "club", 0),
+      r("l6", { player: "هادی کرمانی", from: T[3], to: T[4], type: "انتقال", amount: "۶۰۰ میلیون" }, "rejected", 2, [["دلیل", "مدارک رضایت‌نامه باشگاه مبدأ ناقص"]]),
     ],
   },
 
@@ -593,10 +599,10 @@ export const workspaces: Record<string, Workspace> = {
     },
     records: [
       r("s1", { title: "لیگ استانی بانوان در ۱۲ استان", committee: "کمیته توسعه بانوان", goal: "توسعه بانوان", budget: "۲۴ میلیارد", progress: "38" }, "behind", 2, [["مصرف بودجه", "۹ میلیارد"], ["استان‌های فعال", "۶ از ۱۲"]], "عقب از برنامه. دو استان منتظر تخصیص سالن هستند."),
-      r("s2", { title: "آماده‌سازی تیم ملی برای قهرمانی آسیا", committee: "کمیته فنی و تیم‌های ملی", goal: "قهرمانی", budget: "۸۵ میلیارد", progress: "72" }, "ontrack", 2, [["مصرف بودجه", "۶۱ میلیارد"]]),
+      r("s2", { title: `آماده‌سازی تیم ملی برای ${c.majorEvent}`, committee: "کمیته فنی و تیم‌های ملی", goal: "قهرمانی", budget: "۸۵ میلیارد", progress: "72" }, "ontrack", 2, [["مصرف بودجه", "۶۱ میلیارد"]]),
       r("s3", { title: "ثبت‌نام آنلاین همه مسابقات", committee: "کمیته مسابقات", goal: "تحول دیجیتال", budget: "۶ میلیارد", progress: "70" }, "ontrack", 2),
       r("s4", { title: "دوره مربیگری در ۱۰ استان کم‌برخوردار", committee: "کمیته آموزش", goal: "آموزش", budget: "۵ میلیارد", progress: "81" }, "ontrack", 2),
-      r("s5", { title: "جذب حامی دوم لیگ برتر", committee: "کمیته مسابقات", goal: "درآمد پایدار", budget: "—", progress: "20" }, "approved", 1),
+      r("s5", { title: `جذب حامی دوم ${c.leagueName}`, committee: "کمیته مسابقات", goal: "درآمد پایدار", budget: "—", progress: "20" }, "approved", 1),
       r("s6", { title: "پایش سلامت ورزشکاران نوجوان", committee: "کمیته پزشکی", goal: "توسعه همگانی", budget: "۳ میلیارد", progress: "0" }, "proposed", 0),
     ],
   },
@@ -682,21 +688,22 @@ export const workspaces: Record<string, Workspace> = {
       success: "پرونده ثبت شد و به کمیته داوران ارجاع شد",
       status: "filed",
       fields: [
-        { key: "subject", label: "موضوع", type: "select", options: ["اعتراض به امتیاز", "اعتراض به وزن‌کشی", "رفتار غیرورزشی", "عدم حضور تیم", "تخلف مربی"] },
+        { key: "subject", label: "موضوع", type: "select", options: ["اعتراض به امتیاز", c.protestCheckIn, "رفتار غیرورزشی", "عدم حضور تیم", "تخلف مربی"] },
         { key: "competition", label: "مسابقه", type: "select", options: ["قهرمانی کشور بزرگسالان", "لیگ برتر، هفته هشتم", "قهرمانی استان فارس نوجوانان"] },
         { key: "party", label: "طرف پرونده", type: "text", required: true },
         { key: "body", label: "شرح", type: "textarea", required: true },
       ],
     },
     records: [
-      r("x1", { number: "الف-۱۴۰۵-۰۴۱", subject: "اعتراض به امتیاز راند سوم", competition: "قهرمانی کشور بزرگسالان", party: "مربی تیم مازندران", session: "امروز، ۱۴:۰۰" }, "video", 1, [["مبارزه", "یک‌چهارم نهایی تا ۶۸ کیلوگرم، زمین ۳"], ["هزینه اعتراض", "پرداخت شد"]]),
+      r("x1", { number: "الف-۱۴۰۵-۰۴۱", subject: c.protestScore, competition: "قهرمانی کشور بزرگسالان", party: "مربی تیم مازندران", session: "امروز، ۱۴:۰۰" }, "video", 1, [["مسابقه", c.protestDetail], ["هزینه اعتراض", "پرداخت شد"]]),
       r("x2", { number: "الف-۱۴۰۵-۰۳۹", subject: "رفتار غیرورزشی مربی", competition: "لیگ برتر، هفته هشتم", party: "سرمربی باشگاه رستم", session: "۴ آذر" }, "hearing", 2, [["گزارش‌دهنده", "ناظر مسابقه"]]),
       r("x3", { number: "الف-۱۴۰۵-۰۳۶", subject: "عدم حضور تیم", competition: "قهرمانی استان فارس", party: "باشگاه حافظ", session: "—" }, "ruled", 4, [["رأی", "محرومیت یک مسابقه و جریمه"]], "رأی کمیته: محرومیت تیم از یک مسابقه و جریمه ۵۰ میلیون تومان. قابل تجدیدنظر تا ۷ روز."),
-      r("x4", { number: "الف-۱۴۰۵-۰۴۲", subject: "اعتراض به وزن‌کشی", competition: "قهرمانی کشور بزرگسالان", party: "تیم البرز", session: "—" }, "filed", 0),
+      r("x4", { number: "الف-۱۴۰۵-۰۴۲", subject: c.protestCheckIn, competition: "قهرمانی کشور بزرگسالان", party: "تیم البرز", session: "—" }, "filed", 0),
       r("x5", { number: "الف-۱۴۰۵-۰۳۳", subject: "اعتراض به نتیجه نیمه‌نهایی", competition: "قهرمانی کشور جوانان", party: "مربی تیم کرمان", session: "—" }, "dismissed", 1, [["نتیجه بازبینی", "امتیاز داور درست بوده است"]]),
     ],
   },
 };
+}
 
 /** Roles and what each one may do, for the users module's permission matrix. */
 export const permissionMatrix = {
@@ -721,21 +728,24 @@ export const permissionMatrix = {
   ],
 };
 
-/** Internal messenger demo conversations. */
-export const conversations = [
+/** Internal messenger conversations. */
+export function buildConversations(p: FederationProfile) {
+  const c = p.copy;
+  const B = p.boardName;
+  return [
   {
     id: "cv1",
     with: "کمیته مسابقات",
     members: "۹ عضو",
     messages: [
-      { from: "بهنام عباسی", text: "جدول قرعه انتخابی جوانان بانوان آماده است، لطفاً بررسی کنید.", time: "۰۸:۱۲", mine: false },
-      { from: "من", text: "دیدم. وزن تا ۴۹ کیلوگرم یک سرگروه کم دارد، اصلاح کنید.", time: "۰۸:۳۰", mine: true },
+      { from: "بهنام عباسی", text: "جدول قرعه انتخابی تیم ملی بانوان آماده است، لطفاً بررسی کنید.", time: "۰۸:۱۲", mine: false },
+      { from: "من", text: c.drawNote, time: "۰۸:۳۰", mine: true },
       { from: "بهنام عباسی", text: "اصلاح شد و برای تأیید فرستادم.", time: "۰۹:۰۵", mine: false },
     ],
   },
   {
     id: "cv2",
-    with: "هیئت تکواندو اصفهان",
+    with: B("اصفهان"),
     members: "سارا کریمی",
     messages: [
       { from: "سارا کریمی", text: "سالن پیروزی برای هفته نهم لیگ آماده است. درخواست رزرو را ثبت کردیم.", time: "دیروز", mine: false },
@@ -746,6 +756,7 @@ export const conversations = [
     id: "cv3",
     with: "کمیته پزشکی",
     members: "۶ عضو",
-    messages: [{ from: "نرگس کریمی", text: "تأیید پزشکی سه ورزشکار اردوی آسیا تا فردا ارسال می‌شود.", time: "۲ روز پیش", mine: false }],
+    messages: [{ from: "نرگس کریمی", text: `تأیید پزشکی سه ورزشکار اردوی ${c.majorEvent} تا فردا ارسال می‌شود.`, time: "۲ روز پیش", mine: false }],
   },
 ];
+}

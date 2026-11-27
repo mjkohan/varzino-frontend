@@ -1,6 +1,6 @@
 # Varzino frontend
 
-Phase-one demo of Varzino (ورزینو): a landing page and an admin panel with demo data, as two separate Next.js apps in one Turborepo. It is front-end only, with no backend and no real data.
+Varzino (ورزینو), phase one: a landing page and an admin panel, as two separate Next.js apps in one Turborepo. It is front-end only. There is no backend: the data is generated mock data, and sign-in uses hardcoded accounts.
 
 ## Stack
 
@@ -17,12 +17,14 @@ apps/landing             landing site, port 3000
   app/page.tsx           /
   components/            landing sections
 apps/panel               admin panel, port 3001
-  app/login              demo role picker   /login
+  app/login              phone + password sign-in   /login
+  lib/accounts.ts        hardcoded accounts (server only)
+  proxy.ts               redirects to /login without a session
   app/(dashboard)        shell + dashboard  /  and 20 module routes (/competitions, /people ...)
   components/            panel shell, lists, views
 packages/shared          code both apps use: font, providers, logo, membership card, bracket, cross-app URLs
 packages/ui              design tokens, components, charts
-packages/demo-data       typed, seeded demo data (taekwondo federation)
+packages/demo-data       typed, seeded mock data, one data set per federation (profiles/para.ts, profiles/assoc.ts)
 packages/utils           fa-IR formatting: numbers, Toman, Jalali dates
 packages/config-typescript
 ```
@@ -37,6 +39,28 @@ pnpm build      # production build of every workspace
 pnpm lint
 pnpm typecheck
 ```
+
+## Federations and sign-in
+
+The panel holds mock data for two federations. The account you sign in with decides which federation's data you see.
+
+- **فدراسیون ورزش‌های جانبازان و توان‌یابان** (`para`): para powerlifting, athletics, table tennis, shooting, archery, sitting volleyball, wheelchair basketball.
+- **فدراسیون انجمن‌های ورزشی** (`assoc`): the darts association only (steel and soft darts).
+
+| Federation | Role | Phone | Password |
+|---|---|---|---|
+| para | Secretary-general (federation) | 09121110001 | Para@1405 |
+| para | Provincial board head (Isfahan) | 09121110002 | Para@1405 |
+| para | Club manager | 09121110003 | Para@1405 |
+| para | Athlete (participant portal) | 09121110004 | Para@1405 |
+| assoc | Secretary-general (federation) | 09122220001 | Darts@1405 |
+| assoc | Provincial board head (Tehran) | 09122220002 | Darts@1405 |
+| assoc | Darts club manager | 09122220003 | Darts@1405 |
+| assoc | Athlete (participant portal) | 09122220004 | Darts@1405 |
+
+The phone field also accepts Persian digits. These accounts are not real security: the passwords are in `apps/panel/lib/accounts.ts`, and the session cookie (`varzino-session`) is unsigned. Replace them with a real auth backend before production use. The cookie gets the `Secure` flag only when `NEXT_PUBLIC_PANEL_URL` starts with `https://`.
+
+Server code reads data with `getData()` from `apps/panel/lib/session.ts`. Client components use `useData()` from `apps/panel/components/data-provider.tsx`. To add a federation, add a profile in `packages/demo-data/src/profiles/` and register it in `dataset.ts`.
 
 ## Cross-app links
 

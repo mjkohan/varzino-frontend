@@ -1,6 +1,6 @@
 "use client";
 
-import { competitions, modules, people, roleLabel } from "@varzino/demo-data";
+import { modules, roleLabel } from "@varzino/demo-data";
 import { Kbd } from "@varzino/ui/components/misc";
 import { Command } from "cmdk";
 import { CornerDownLeft, Search, Trophy, UserRound } from "lucide-react";
@@ -8,11 +8,13 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ModuleIcon } from "@varzino/shared/module-icon";
+import { useData } from "@/components/data-provider";
 
 const itemClass =
   "flex h-10 cursor-pointer select-none items-center gap-3 rounded-control px-3 text-sm text-fg data-[selected=true]:bg-raised [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-fg-muted";
 
 export function CommandMenu() {
+  const { competitions, people } = useData();
   const [open, setOpen] = useState(false);
   const router = useRouter();
 

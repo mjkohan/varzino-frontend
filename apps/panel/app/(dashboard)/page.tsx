@@ -1,15 +1,4 @@
-import {
-  activity,
-  approvals,
-  competitions,
-  competitionStatusLabel,
-  levelLabel,
-  liveSchedule,
-  nationalTotals,
-  provinces,
-  registrationTrend,
-  wallet,
-} from "@varzino/demo-data";
+import { competitionStatusLabel, levelLabel } from "@varzino/demo-data";
 import { Button } from "@varzino/ui/components/button";
 import { Legend, TrendChart } from "@varzino/ui/charts/charts";
 import { StatusBadge } from "@varzino/ui/components/badge";
@@ -26,14 +15,15 @@ import {
 import { ArrowLeft, BadgeCheck, GraduationCap, Repeat, Trophy, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDemoRole } from "@/lib/role";
+import { getData, getSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "پیشخوان" };
 
 const approvalIcon = { license: BadgeCheck, competition: Trophy, transfer: Repeat, finance: Wallet, course: GraduationCap } as const;
 
 export default async function DashboardPage() {
-  const role = await getDemoRole();
+  const { activity, approvals, competitions, liveSchedule, nationalTotals, provinces, registrationTrend, wallet } = await getData();
+  const role = await getSession();
   const live = competitions.find((c) => c.status === "live")!;
   const upcoming = competitions
     .filter((c) => c.status === "registration" || c.status === "scheduled")

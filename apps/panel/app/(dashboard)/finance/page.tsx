@@ -1,4 +1,4 @@
-import { cashflow, incomeBySource, settlements, settlementStatusLabel, txKindLabel, wallet } from "@varzino/demo-data";
+import { settlementStatusLabel, txKindLabel } from "@varzino/demo-data";
 import { Legend, TrendChart } from "@varzino/ui/charts/charts";
 import { StatusBadge, type Tone } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
@@ -9,13 +9,15 @@ import { ArrowDownLeft, Download } from "lucide-react";
 import type { Metadata } from "next";
 import { LogoMark } from "@varzino/shared/logo";
 import { TransactionsTable } from "@/components/transactions-table";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "مالی و کیف پول" };
 
 const settlementTone: Record<string, Tone> = { paid: "positive", scheduled: "info", "awaiting-docs": "warning" };
 
 /** The wallet as an object: an account card with the balance as the figure. */
-function WalletCard() {
+async function WalletCard() {
+  const { wallet } = await getData();
   return (
     <div
       className="relative flex min-h-56 flex-col justify-between overflow-hidden rounded-panel p-6 text-white"
@@ -53,7 +55,8 @@ function WalletCard() {
   );
 }
 
-export default function FinancePage() {
+export default async function FinancePage() {
+  const { cashflow, incomeBySource, settlements, wallet } = await getData();
   const totalIncome = incomeBySource.reduce((s, i) => s + i.amount, 0);
   return (
     <div className="flex flex-col gap-6">

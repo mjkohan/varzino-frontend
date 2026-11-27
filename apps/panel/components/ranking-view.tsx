@@ -1,6 +1,6 @@
 "use client";
 
-import { clubById, pointsHistory, provinceById, rankingFor, scoringRules, weightClasses, weightLabel } from "@varzino/demo-data";
+import { categoryLabel } from "@varzino/demo-data";
 import { TrendChart } from "@varzino/ui/charts/charts";
 import { Card, CardBody, CardHeader } from "@varzino/ui/components/card";
 import { CodeChip } from "@varzino/ui/components/code-chip";
@@ -13,6 +13,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FilterTabs } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 function Change({ value }: { value: number }) {
   if (value === 0) return <span className="text-fg-muted">–</span>;
@@ -27,12 +28,18 @@ function Change({ value }: { value: number }) {
 }
 
 export function RankingView() {
+  const { clubById, pointsHistory, profile, provinceById, rankingDisciplines, rankingFor, scoringRules } = useData();
   const [gender, setGender] = useState<"male" | "female">("male");
+  const [disciplineId, setDisciplineId] = useState(profile.bracketDisciplineId);
   const [weight, setWeight] = useState<string>("all");
-  const entries = useMemo(() => rankingFor(gender, weight === "all" ? undefined : weight), [gender, weight]);
+  const discipline = rankingDisciplines.find((d) => d.id === disciplineId) ?? rankingDisciplines[0]!;
+  const entries = useMemo(
+    () => rankingFor(gender, weight === "all" ? undefined : weight, discipline.id),
+    [rankingFor, gender, weight, discipline.id],
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = entries.find((e) => e.person.id === selectedId) ?? entries[0];
-  const history = useMemo(() => (selected ? pointsHistory(selected.person) : []), [selected]);
+  const history = useMemo(() => (selected ? pointsHistory(selected.person) : []), [pointsHistory, selected]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,21 +59,41 @@ export function RankingView() {
                 { value: "female", label: "بانوان" },
               ]}
             />
-            <NativeSelect aria-label="وزن" value={weight} onChange={(e) => setWeight(e.target.value)} className="w-full md:w-48">
-              <option value="all">همه اوزان</option>
-              {weightClasses[gender].map((w) => (
-                <option key={w} value={w}>
-                  {weightLabel(w)}
-                </option>
-              ))}
-            </NativeSelect>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {rankingDisciplines.length > 1 ? (
+                <NativeSelect
+                  aria-label="رشته"
+                  value={discipline.id}
+                  onChange={(e) => {
+                    setDisciplineId(e.target.value);
+                    setWeight("all");
+                    setSelectedId(null);
+                  }}
+                  className="w-full md:w-44"
+                >
+                  {rankingDisciplines.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              ) : null}
+              <NativeSelect aria-label={profile.categoryTitle} value={weight} onChange={(e) => setWeight(e.target.value)} className="w-full md:w-48">
+                <option value="all">همه رده‌ها</option>
+                {discipline.categories[gender].map((w) => (
+                  <option key={w} value={w}>
+                    {categoryLabel(w)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
           </div>
           <Table>
             <THead>
               <TH className="w-14">رتبه</TH>
               <TH>ورزشکار</TH>
               <TH>استان</TH>
-              <TH>وزن</TH>
+              <TH>{profile.categoryTitle}</TH>
               <TH>مدال‌ها</TH>
               <TH numeric>تغییر</TH>
               <TH numeric>امتیاز</TH>
@@ -87,7 +114,7 @@ export function RankingView() {
                       </button>
                     </TD>
                     <TD className="text-fg-secondary">{provinceById[e.person.provinceId]?.name}</TD>
-                    <TD className="text-fg-secondary">{weightLabel(e.person.weightClass)}</TD>
+                    <TD className="text-fg-secondary">{categoryLabel(e.person.category)}</TD>
                     <TD>
                       <span className="tabular flex items-center gap-3 text-xs text-fg-secondary">
                         {(["gold", "silver", "bronze"] as const).map((k) => (

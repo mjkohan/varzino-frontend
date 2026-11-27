@@ -1,6 +1,6 @@
 "use client";
 
-import { workspaces, type WsField, type WsRecord } from "@varzino/demo-data";
+import { type WsField, type WsRecord } from "@varzino/demo-data";
 import { StatusBadge } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardHeader } from "@varzino/ui/components/card";
@@ -14,6 +14,7 @@ import { Inbox, Plus, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { FilterTabs, SearchInput, Toolbar } from "./list-toolbar";
+import { useData } from "@/components/data-provider";
 
 function toLatin(s: string) {
   return s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
@@ -95,7 +96,7 @@ function SignatureDialog({ open, onClose, onSigned, subject }: { open: boolean; 
         <div className="flex flex-col gap-5">
           <div className="flex items-start gap-3 rounded-card border border-hairline bg-raised/60 p-4 text-sm text-fg-secondary">
             <ShieldCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-accent-ink" />
-            کد شش‌رقمی به تلفن همراه امضاکننده ارسال شد. در نسخه نمایشی هر شش رقمی پذیرفته می‌شود، مثلاً ۱۲۳۴۵۶.
+            کد شش‌رقمی به تلفن همراه امضاکننده ارسال شد.
           </div>
           <Field label="کد تأیید" htmlFor="otp">
             <Input
@@ -125,6 +126,7 @@ function SignatureDialog({ open, onClose, onSigned, subject }: { open: boolean; 
 }
 
 export function ModuleWorkspace({ id }: { id: string }) {
+  const { workspaces } = useData();
   const ws = workspaces[id]!;
   const [records, setRecords] = useState<WsRecord[]>(ws.records);
   const [status, setStatus] = useState("all");
@@ -325,7 +327,7 @@ export function ModuleWorkspace({ id }: { id: string }) {
 
       {/* Create */}
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent title={ws.create.title} description="داده در نسخه نمایشی فقط تا تازه‌سازی صفحه نگه داشته می‌شود" className="max-w-xl">
+        <DialogContent title={ws.create.title} description={ws.description} className="max-w-xl">
           <form
             noValidate
             className="grid gap-5 sm:grid-cols-2"

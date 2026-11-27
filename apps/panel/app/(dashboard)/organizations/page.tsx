@@ -1,4 +1,4 @@
-import { orgKindLabel, orgTree, positions, positionStatusLabel, provinces, type OrgNode } from "@varzino/demo-data";
+import { orgKindLabel, positionStatusLabel, type OrgNode } from "@varzino/demo-data";
 import { StatusBadge, type Tone } from "@varzino/ui/components/badge";
 import { Button } from "@varzino/ui/components/button";
 import { Card, CardHeader } from "@varzino/ui/components/card";
@@ -7,10 +7,11 @@ import { cn } from "@varzino/ui/lib/cn";
 import { formatNumber, formatPercent } from "@varzino/utils";
 import { Building, Building2, ChevronDown, Landmark, Plus, UsersRound } from "lucide-react";
 import type { Metadata } from "next";
+import { getData } from "@/lib/session";
 
 export const metadata: Metadata = { title: "سازمان‌ها" };
 
-const kindIcon = { federation: Landmark, committee: UsersRound, board: Building2, city: Building2, club: Building } as const;
+const kindIcon = { federation: Landmark, association: Landmark, committee: UsersRound, board: Building2, city: Building2, club: Building } as const;
 
 function NodeRow({ node, depth }: { node: OrgNode; depth: number }) {
   const Icon = kindIcon[node.kind];
@@ -62,7 +63,8 @@ function Tree({ node, depth = 0 }: { node: OrgNode; depth?: number }) {
 
 const positionTone: Record<string, Tone> = { filled: "positive", vacant: "negative", acting: "warning" };
 
-export default function OrganizationsPage() {
+export default async function OrganizationsPage() {
+  const { orgTree, positions, provinces } = await getData();
   const boards = provinces.length;
   const clubs = provinces.reduce((s, p) => s + p.clubs, 0);
   return (

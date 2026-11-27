@@ -49,9 +49,9 @@ export function Contact() {
             در یک جلسه یک‌ساعته، فرایند ثبت‌نام، مسابقه و صدور کارت را با نمونه‌ای از داده‌های رشته شما مرور می‌کنیم.
           </p>
           <p className="mt-6 text-sm text-fg-muted">
-            می‌خواهید اول خودتان امتحان کنید؟{" "}
+            حساب کاربری دارید؟{" "}
             <a href={panelLoginUrl} className="font-medium text-accent-ink underline-offset-4 hover:underline">
-              ورود به نسخه نمایشی
+              ورود به سامانه
             </a>
           </p>
         </div>

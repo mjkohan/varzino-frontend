@@ -45,7 +45,7 @@ export function LandingHeader() {
         </nav>
         <div className="hidden items-center gap-4 md:flex">
           <a href={panelLoginUrl} className="text-sm text-fg-secondary transition-colors hover:text-fg">
-            نسخه نمایشی
+            ورود به سامانه
           </a>
           <Button asChild size="md">
             <a href="#contact">درخواست جلسه معرفی</a>
@@ -75,7 +75,7 @@ export function LandingHeader() {
           </ul>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Button asChild variant="secondary" size="lg">
-              <a href={panelLoginUrl}>نسخه نمایشی</a>
+              <a href={panelLoginUrl}>ورود به سامانه</a>
             </Button>
             <Button asChild size="lg">
               <a href="#contact" onClick={() => setOpen(false)}>

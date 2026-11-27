@@ -1,21 +1,24 @@
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
+import { DataProvider } from "@/components/data-provider";
 import { redirect } from "next/navigation";
-import { getDemoRole } from "@/lib/role";
+import { getSession, toSessionUser } from "@/lib/session";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
-  const role = await getDemoRole();
+  const account = await getSession();
   // The participant role has its own portal.
-  if (role.home !== "/") redirect(role.home);
+  if (account.home !== "/") redirect(account.home);
   return (
-    <div className="flex min-h-dvh">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar role={role} />
-        <main id="main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-16 pt-6 md:px-8 md:pt-8">
-          {children}
-        </main>
+    <DataProvider user={toSessionUser(account)}>
+      <div className="flex min-h-dvh">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main id="main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-16 pt-6 md:px-8 md:pt-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </DataProvider>
   );
 }
